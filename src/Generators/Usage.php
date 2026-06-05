@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace LLMesh\Core\Generators;
+
+use LLMesh\Core\Contracts\UsageInterface;
+
+/**
+ * Usage information for a text generation response.
+ *
+ * @psalm-immutable
+ */
+final readonly class Usage implements UsageInterface
+{
+    /**
+     * @param int $inputTokens Number of input tokens used
+     * @param int $outputTokens Number of output tokens generated
+     * @param int|null $totalTokens Total tokens used (auto-calculated if null)
+     * @param float|null $estimatedCost Estimated USD cost of the request
+     */
+    public function __construct(
+        public int $inputTokens,
+        public int $outputTokens,
+        public int|null $totalTokens = null,
+        public float|null $estimatedCost = null,
+    ) {
+    }
+
+    /**
+     * Create Usage from an array.
+     *
+     * @param array{input_tokens?: int, output_tokens?: int, total_tokens?: int|null, estimated_cost?: float|null} $data
+     */
+    public static function fromArray(array $data): self
+    {
+        $inputTokens = $data['input_tokens'] ?? 0;
+        $outputTokens = $data['output_tokens'] ?? 0;
+        $totalTokens = $data['total_tokens'] ?? ($inputTokens + $outputTokens);
+        $estimatedCost = $data['estimated_cost'] ?? null;
+
+        return new self(
+            inputTokens: $inputTokens,
+            outputTokens: $outputTokens,
+            totalTokens: $totalTokens,
+            estimatedCost: $estimatedCost,
+        );
+    }
+
+    public function getInputTokens(): int
+    {
+        return $this->inputTokens;
+    }
+
+    public function getOutputTokens(): int
+    {
+        return $this->outputTokens;
+    }
+
+    public function getTotalTokens(): int
+    {
+        return $this->totalTokens ?? ($this->inputTokens + $this->outputTokens);
+    }
+
+    public function getEstimatedCost(): float|null
+    {
+        return $this->estimatedCost;
+    }
+
+    /**
+     * Convert to array for serialization.
+     *
+     * @return array{input_tokens: int, output_tokens: int, total_tokens: int, estimated_cost: float|null}
+     */
+    public function toArray(): array
+    {
+        return [
+            'input_tokens' => $this->inputTokens,
+            'output_tokens' => $this->outputTokens,
+            'total_tokens' => $this->getTotalTokens(),
+            'estimated_cost' => $this->estimatedCost,
+        ];
+    }
+}

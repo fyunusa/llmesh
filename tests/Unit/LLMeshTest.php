@@ -1,0 +1,176 @@
+<?php
+
+declare(strict_types=1);
+
+namespace LLMesh\Core\Tests\Unit;
+
+use LLMesh\Core\Contracts\ProviderInterface;
+use LLMesh\Core\Events\GenerationCompleted;
+use LLMesh\Core\Events\GenerationFailed;
+use LLMesh\Core\Events\GenerationStarted;
+use LLMesh\Core\Generators\GenerateTextOptions;
+use LLMesh\Core\Generators\TextResponse;
+use LLMesh\Core\Generators\Usage;
+use LLMesh\Core\LLMesh;
+use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
+
+final class LLMeshTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        // Reset event dispatcher between tests
+        LLMesh::withEventDispatcher(null);
+    }
+
+    public function testCanGenerateText(): void
+    {
+        $mockProvider = $this->createMock(ProviderInterface::class);
+        $mockProvider
+            ->expects($this->once())
+            ->method('chat')
+            ->willReturn(new TextResponse(
+                text: 'Hello',
+                usage: new Usage(10, 20),
+                finishReason: 'stop',
+                raw: [],
+            ));
+
+        $options = GenerateTextOptions::make()->withPrompt('Hi');
+
+        $response = LLMesh::generateText($mockProvider, $options);
+
+        $this->assertSame('Hello', $response->getText());
+    }
+
+    public function testDispatchesGenerationStartedEvent(): void
+    {
+        $startedEvent = null;
+
+        $mockDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $mockDispatcher
+            ->expects($this->atLeastOnce())
+            ->method('dispatch')
+            ->willReturnCallback(function ($event) use (&$startedEvent) {
+                if ($event instanceof GenerationStarted) {
+                    $startedEvent = $event;
+                }
+                return $event;
+            });
+
+        LLMesh::withEventDispatcher($mockDispatcher);
+
+        $mockProvider = $this->createMock(ProviderInterface::class);
+        $mockProvider
+            ->expects($this->once())
+            ->method('chat')
+            ->willReturn(new TextResponse(
+                text: 'Hello',
+                usage: new Usage(10, 20),
+                finishReason: 'stop',
+                raw: [],
+            ));
+
+        $options = GenerateTextOptions::make()->withPrompt('Hi');
+        LLMesh::generateText($mockProvider, $options);
+
+        $this->assertNotNull($startedEvent);
+        $this->assertInstanceOf(GenerationStarted::class, $startedEvent);
+        $this->assertSame('Mock', $startedEvent->provider);
+        $this->assertSame($options, $startedEvent->options);
+    }
+
+    public function testDispatchesGenerationCompletedEvent(): void
+    {
+        $completedEvent = null;
+
+        $mockDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $mockDispatcher
+            ->expects($this->atLeastOnce())
+            ->method('dispatch')
+            ->willReturnCallback(function ($event) use (&$completedEvent) {
+                if ($event instanceof GenerationCompleted) {
+                    $completedEvent = $event;
+                }
+                return $event;
+            });
+
+        LLMesh::withEventDispatcher($mockDispatcher);
+
+        $mockProvider = $this->createMock(ProviderInterface::class);
+        $mockProvider
+            ->expects($this->once())
+            ->method('chat')
+            ->willReturn(new TextResponse(
+                text: 'Hello',
+                usage: new Usage(10, 20),
+                finishReason: 'stop',
+                raw: [],
+            ));
+
+        $options = GenerateTextOptions::make()->withPrompt('Hi');
+        LLMesh::generateText($mockProvider, $options);
+
+        $this->assertNotNull($completedEvent);
+        $this->assertInstanceOf(GenerationCompleted::class, $completedEvent);
+        $this->assertSame('Mock', $completedEvent->provider);
+        $this->assertInstanceOf(TextResponse::class, $completedEvent->response);
+        $this->assertGreaterThanOrEqual(0, $completedEvent->durationMs);
+    }
+
+    public function testDispatchesGenerationFailedEvent(): void
+    {
+        $failedEvent = null;
+
+        $mockDispatcher = $this->createMock(EventDispatcherInterface::class);
+        $mockDispatcher
+            ->expects($this->atLeastOnce())
+            ->method('dispatch')
+            ->willReturnCallback(function ($event) use (&$failedEvent) {
+                if ($event instanceof GenerationFailed) {
+                    $failedEvent = $event;
+                }
+                return $event;
+            });
+
+        LLMesh::withEventDispatcher($mockDispatcher);
+
+        $exception = new \RuntimeException('Provider error');
+        $mockProvider = $this->createMock(ProviderInterface::class);
+        $mockProvider
+            ->expects($this->once())
+            ->method('chat')
+            ->willThrowException($exception);
+
+        $options = GenerateTextOptions::make()->withPrompt('Hi');
+
+        $this->expectException(\RuntimeException::class);
+        LLMesh::generateText($mockProvider, $options);
+
+        $this->assertNotNull($failedEvent);
+        $this->assertInstanceOf(GenerationFailed::class, $failedEvent);
+        $this->assertSame('Mock', $failedEvent->provider);
+        $this->assertSame($exception, $failedEvent->exception);
+    }
+
+    public function testWorksWithoutEventDispatcher(): void
+    {
+        $mockProvider = $this->createMock(ProviderInterface::class);
+        $mockProvider
+            ->expects($this->once())
+            ->method('chat')
+            ->willReturn(new TextResponse(
+                text: 'Hello',
+                usage: new Usage(10, 20),
+                finishReason: 'stop',
+                raw: [],
+            ));
+
+        $options = GenerateTextOptions::make()->withPrompt('Hi');
+
+        // Should not throw even without dispatcher
+        $response = LLMesh::generateText($mockProvider, $options);
+
+        $this->assertSame('Hello', $response->getText());
+    }
+}
