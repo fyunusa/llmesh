@@ -16,6 +16,7 @@ use LLMesh\Core\Events\StreamFailed;
 use LLMesh\Core\Events\StreamStarted;
 use LLMesh\Core\Embeddings\EmbeddingGenerator;
 use LLMesh\Core\Embeddings\EmbeddingResponse;
+use LLMesh\Core\RAG\Pipeline;
 use LLMesh\Core\Generators\GenerateObjectOptions;
 use LLMesh\Core\Generators\GenerateTextOptions;
 use LLMesh\Core\Generators\ObjectGenerator;
@@ -217,6 +218,26 @@ final class LLMesh
     ): array {
         $generator = new EmbeddingGenerator();
         return $generator->embedBatch($provider, $inputs, $options);
+    }
+
+    /**
+     * Create a new (empty) RAG Pipeline ready for configuration.
+     *
+     * @example
+     * ```php
+     * $result = LLMesh::pipeline()
+     *     ->load(new DirectoryLoader('/docs'))
+     *     ->split(new RecursiveCharacterSplitter(512, 50))
+     *     ->embed($provider)
+     *     ->store(new InMemoryVectorStore())
+     *     ->run();
+     * ```
+     *
+     * @return Pipeline
+     */
+    public static function pipeline(): Pipeline
+    {
+        return Pipeline::make();
     }
 
     /**
