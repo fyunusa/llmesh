@@ -1,17 +1,40 @@
-# LLMesh Core
+# LLMesh
 
 [![Latest Stable Version](https://poser.pugx.org/llmesh/core/v)](https://packagist.org/packages/llmesh/core)
 [![PHP Version](https://img.shields.io/badge/php-%5E8.1-blue.svg)](https://packagist.org/packages/llmesh/core)
 [![Tests](https://github.com/fyunusa/llmesh/actions/workflows/tests.yml/badge.svg)](https://github.com/fyunusa/llmesh/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-LLMesh is a lightweight, framework-agnostic PHP SDK designed to provide a unified, composable interface for working with different AI models and providers, standardizing how PHP developers build AI-powered applications, tools, and agents.
+LLMesh is a flexible PHP SDK designed to help developers build AI-powered applications and autonomous agents.
+
+---
+
+## Why use LLMesh?
+
+Integrating large language models (LLMs) into applications is complicated and heavily dependent on the specific model provider you use.
+
+LLMesh standardizes integrating artificial intelligence (AI) models across supported providers. This enables developers to focus on building great AI applications, not waste time on technical details.
+
+For example, here’s how you can generate text with various models using LLMesh:
+
+```php
+use LLMesh\Core\LLMesh;
+use LLMesh\Core\Generators\GenerateTextOptions;
+use LLMesh\OpenAI\OpenAIProvider;
+
+$response = LLMesh::generateText(
+    new OpenAIProvider($apiKey),
+    GenerateTextOptions::make()->withPrompt('What is love?')
+);
+
+echo $response->getText();
+```
 
 ---
 
 ## Installation
 
-Install the core library along with the OpenAI provider:
+Install the core library along with a provider (e.g. OpenAI):
 
 ```bash
 composer require llmesh/core llmesh/openai
@@ -19,16 +42,16 @@ composer require llmesh/core llmesh/openai
 
 ---
 
-## Quick Start
+## Decoupled Packages
 
-```php
-use LLMesh\Core\LLMesh;
-use LLMesh\Core\Generators\GenerateTextOptions;
-use LLMesh\OpenAI\OpenAIProvider;
+The LLMesh ecosystem consists of separate, modular packages:
 
-$response = LLMesh::generateText(new OpenAIProvider($apiKey), GenerateTextOptions::make()->withPrompt('Hello!'));
-echo $response->getText();
-```
+- **[LLMesh Core](https://github.com/fyunusa/llmesh)**: The unified interfaces, memory builder, RAG pipeline, and orchestration loop.
+- **[OpenAI Provider](https://github.com/fyunusa/llmesh-openai)**: Provider adapter for OpenAI models.
+- **[Anthropic Provider](https://github.com/fyunusa/llmesh-anthropic)**: Provider adapter for Anthropic Claude models.
+- **[Laravel Adapter](https://github.com/fyunusa/llmesh-laravel)**: First-class integration for Laravel applications.
+
+---
 
 ## Features
 
