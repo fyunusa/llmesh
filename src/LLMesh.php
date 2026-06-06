@@ -30,24 +30,50 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 /**
  * Main entry point for LLMesh operations.
  *
- * This is a static facade providing a fluent API for AI operations.
+ * This is an instantiable facade providing a fluent API for AI operations.
  */
 final class LLMesh
 {
     /**
-     * @var EventDispatcherInterface|null
+     * @var self|null
      */
-    private static EventDispatcherInterface|null $eventDispatcher = null;
+    private static ?self $instance = null;
 
     /**
-     * Set the event dispatcher for all operations.
-     *
-     * @param EventDispatcherInterface|null $dispatcher
+     * @var EventDispatcherInterface|null
      */
-    public static function withEventDispatcher(EventDispatcherInterface|null $dispatcher): void
+    private ?EventDispatcherInterface $eventDispatcher = null;
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
     {
-        self::$eventDispatcher = $dispatcher;
     }
+
+    /**
+     * Get the singleton instance.
+     *
+     * @return self
+     */
+    public static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    /**
+     * Create a new instance of LLMesh.
+     *
+     * @return self
+     */
+    public static function make(): self
+    {
+        return new self();
+    }
+
 
     /**
      * Generate text using the provided provider and options.
@@ -58,16 +84,25 @@ final class LLMesh
      *
      * @throws \Throwable
      */
-    public static function generateText(
+    /**
+     * Generate text using the provided provider and options.
+     *
+     * @param ProviderInterface $provider The LLM provider
+     * @param GenerateTextOptions $options Generation options
+     * @return TextResponse The generated text response
+     *
+     * @throws \Throwable
+     */
+    private function runGenerateText(
         ProviderInterface $provider,
         GenerateTextOptions $options,
     ): TextResponse {
         $startTime = microtime(true);
-        $providerName = self::getProviderName($provider);
+        $providerName = $this->getProviderName($provider);
 
         try {
             // Dispatch GenerationStarted event
-            self::dispatch(new GenerationStarted($providerName, $options));
+            $this->dispatch(new GenerationStarted($providerName, $options));
 
             // Generate text
             $generator = new TextGenerator($provider);
@@ -77,12 +112,12 @@ final class LLMesh
             $durationMs = (int)((microtime(true) - $startTime) * 1000);
 
             // Dispatch GenerationCompleted event
-            self::dispatch(new GenerationCompleted($providerName, $response, $durationMs));
+            $this->dispatch(new GenerationCompleted($providerName, $response, $durationMs));
 
             return $response;
         } catch (\Throwable $exception) {
             // Dispatch GenerationFailed event
-            self::dispatch(new GenerationFailed($providerName, $exception));
+            $this->dispatch(new GenerationFailed($providerName, $exception));
 
             throw $exception;
         }
@@ -101,25 +136,25 @@ final class LLMesh
      *
      * @throws \Throwable
      */
-    public static function generateObject(
+    private function runGenerateObject(
         ProviderInterface $provider,
         GenerateObjectOptions $options,
     ): ObjectResponse {
         $startTime    = microtime(true);
-        $providerName = self::getProviderName($provider);
+        $providerName = $this->getProviderName($provider);
 
         try {
-            self::dispatch(new ObjectGenerationStarted($providerName, $options));
+            $this->dispatch(new ObjectGenerationStarted($providerName, $options));
 
             $generator = new ObjectGenerator($provider);
             $response  = $generator->generate($options);
 
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
-            self::dispatch(new ObjectGenerationCompleted($providerName, $response, $durationMs));
+            $this->dispatch(new ObjectGenerationCompleted($providerName, $response, $durationMs));
 
             return $response;
         } catch (\Throwable $exception) {
-            self::dispatch(new GenerationFailed($providerName, $exception));
+            $this->dispatch(new GenerationFailed($providerName, $exception));
             throw $exception;
         }
     }
@@ -144,15 +179,15 @@ final class LLMesh
      * @throws \RuntimeException If the provider does not support streaming
      * @throws \Throwable        Re-throws any provider exception
      */
-    public static function streamText(
+    private function runStreamText(
         ProviderInterface $provider,
         GenerateTextOptions $options,
     ): StreamResponse {
         $startTime    = microtime(true);
-        $providerName = self::getProviderName($provider);
+        $providerName = $this->getProviderName($provider);
 
         // Dispatch StreamStarted before the provider is called
-        self::dispatch(new StreamStarted($providerName, $options));
+        $this->dispatch(new StreamStarted($providerName, $options));
 
         // Obtain the raw StreamResponse from the generator (lazy — no chunks yet)
         $generator = new StreamGenerator($provider);
@@ -168,15 +203,15 @@ final class LLMesh
             $chunkIndex = 0;
             try {
                 foreach ($rawStream->getChunks() as $chunk) {
-                    self::dispatch(new StreamChunkReceived($chunk, $chunkIndex));
+                    $this->dispatch(new StreamChunkReceived($chunk, $chunkIndex));
                     $chunkIndex++;
                     yield $chunk;
                 }
 
                 $durationMs = (int) ((microtime(true) - $startTime) * 1000);
-                self::dispatch(new StreamCompleted($providerName, $chunkIndex, $durationMs));
+                $this->dispatch(new StreamCompleted($providerName, $chunkIndex, $durationMs));
             } catch (\Throwable $exception) {
-                self::dispatch(new StreamFailed($providerName, $exception));
+                $this->dispatch(new StreamFailed($providerName, $exception));
                 throw $exception;
             }
         })();
@@ -192,7 +227,7 @@ final class LLMesh
      * @param array             $options  Provider-specific options
      * @return EmbeddingResponse
      */
-    public static function embed(
+    private function runEmbed(
         ProviderInterface $provider,
         string $input,
         array $options = [],
@@ -211,7 +246,7 @@ final class LLMesh
      * @param array             $options  Provider-specific options
      * @return EmbeddingResponse[]
      */
-    public static function embedBatch(
+    private function runEmbedBatch(
         ProviderInterface $provider,
         array $inputs,
         array $options = [],
@@ -223,21 +258,57 @@ final class LLMesh
     /**
      * Create a new (empty) RAG Pipeline ready for configuration.
      *
-     * @example
-     * ```php
-     * $result = LLMesh::pipeline()
-     *     ->load(new DirectoryLoader('/docs'))
-     *     ->split(new RecursiveCharacterSplitter(512, 50))
-     *     ->embed($provider)
-     *     ->store(new InMemoryVectorStore())
-     *     ->run();
-     * ```
-     *
      * @return Pipeline
      */
-    public static function pipeline(): Pipeline
+    private function runPipeline(): Pipeline
     {
         return Pipeline::make();
+    }
+
+    /**
+     * Route dynamic instance calls.
+     *
+     * @param string $name Method name
+     * @param array $arguments Method arguments
+     * @return mixed
+     */
+    public function __call(string $name, array $arguments)
+    {
+        if ($name === 'withEventDispatcher') {
+            $this->eventDispatcher = $arguments[0];
+            return $this;
+        }
+
+        $runMethod = 'run' . ucfirst($name);
+        if (method_exists($this, $runMethod)) {
+            return $this->$runMethod(...$arguments);
+        }
+
+        throw new \BadMethodCallException("Method {$name} does not exist.");
+    }
+
+    /**
+     * Route static calls to the singleton instance to preserve backward compatibility.
+     *
+     * @param string $name Method name
+     * @param array $arguments Method arguments
+     * @return mixed
+     */
+    public static function __callStatic(string $name, array $arguments)
+    {
+        if ($name === 'withEventDispatcher') {
+            $instance = self::getInstance();
+            $instance->eventDispatcher = $arguments[0];
+            return $instance;
+        }
+
+        $instance = self::getInstance();
+        $runMethod = 'run' . ucfirst($name);
+        if (method_exists($instance, $runMethod)) {
+            return $instance->$runMethod(...$arguments);
+        }
+
+        throw new \BadMethodCallException("Static method {$name} does not exist.");
     }
 
     /**
@@ -246,7 +317,7 @@ final class LLMesh
      * @param ProviderInterface $provider
      * @return string
      */
-    private static function getProviderName(ProviderInterface $provider): string
+    private function getProviderName(ProviderInterface $provider): string
     {
         $class = get_class($provider);
 
@@ -267,10 +338,10 @@ final class LLMesh
      *
      * @param object $event
      */
-    private static function dispatch(object $event): void
+    private function dispatch(object $event): void
     {
-        if (self::$eventDispatcher !== null) {
-            self::$eventDispatcher->dispatch($event);
+        if ($this->eventDispatcher !== null) {
+            $this->eventDispatcher->dispatch($event);
         }
     }
 }

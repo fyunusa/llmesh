@@ -38,7 +38,7 @@ final class LLMeshTest extends TestCase
 
         $options = GenerateTextOptions::make()->withPrompt('Hi');
 
-        $response = LLMesh::generateText($mockProvider, $options);
+        $response = LLMesh::make()->generateText($mockProvider, $options);
 
         $this->assertSame('Hello', $response->getText());
     }
@@ -95,8 +95,6 @@ final class LLMeshTest extends TestCase
                 return $event;
             });
 
-        LLMesh::withEventDispatcher($mockDispatcher);
-
         $mockProvider = $this->createMock(ProviderInterface::class);
         $mockProvider
             ->expects($this->once())
@@ -109,7 +107,7 @@ final class LLMeshTest extends TestCase
             ));
 
         $options = GenerateTextOptions::make()->withPrompt('Hi');
-        LLMesh::generateText($mockProvider, $options);
+        LLMesh::withEventDispatcher($mockDispatcher)->generateText($mockProvider, $options);
 
         $this->assertNotNull($completedEvent);
         $this->assertInstanceOf(GenerationCompleted::class, $completedEvent);
@@ -133,8 +131,6 @@ final class LLMeshTest extends TestCase
                 return $event;
             });
 
-        LLMesh::withEventDispatcher($mockDispatcher);
-
         $exception = new \RuntimeException('Provider error');
         $mockProvider = $this->createMock(ProviderInterface::class);
         $mockProvider
@@ -145,7 +141,7 @@ final class LLMeshTest extends TestCase
         $options = GenerateTextOptions::make()->withPrompt('Hi');
 
         $this->expectException(\RuntimeException::class);
-        LLMesh::generateText($mockProvider, $options);
+        LLMesh::withEventDispatcher($mockDispatcher)->generateText($mockProvider, $options);
 
         $this->assertNotNull($failedEvent);
         $this->assertInstanceOf(GenerationFailed::class, $failedEvent);
@@ -169,7 +165,7 @@ final class LLMeshTest extends TestCase
         $options = GenerateTextOptions::make()->withPrompt('Hi');
 
         // Should not throw even without dispatcher
-        $response = LLMesh::generateText($mockProvider, $options);
+        $response = LLMesh::make()->generateText($mockProvider, $options);
 
         $this->assertSame('Hello', $response->getText());
     }

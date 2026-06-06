@@ -18,18 +18,21 @@ use LLMesh\Core\Observability\CostCalculator;
  */
 final class Usage implements UsageInterface
 {
+    public readonly int $totalTokens;
+
     /**
      * @param int        $inputTokens   Number of input tokens used
      * @param int        $outputTokens  Number of output tokens generated
-     * @param int|null   $totalTokens   Total tokens used (auto-calculated if null)
+     * @param int|null   $totalTokens   Total tokens used (ignored, always computed)
      * @param float|null $estimatedCost Estimated USD cost (auto-calculated if null and model provided)
      */
     public function __construct(
         public readonly int $inputTokens,
         public readonly int $outputTokens,
-        public readonly int|null $totalTokens = null,
+        ?int $totalTokens = null,
         public readonly float|null $estimatedCost = null,
     ) {
+        $this->totalTokens = $this->inputTokens + $this->outputTokens;
     }
 
     /**
@@ -50,7 +53,6 @@ final class Usage implements UsageInterface
     {
         $inputTokens  = $data['input_tokens']  ?? 0;
         $outputTokens = $data['output_tokens'] ?? 0;
-        $totalTokens  = $data['total_tokens']  ?? ($inputTokens + $outputTokens);
 
         // Use the explicitly provided cost, or auto-calculate when a model is known
         $estimatedCost = $data['estimated_cost'] ?? null;
@@ -65,7 +67,7 @@ final class Usage implements UsageInterface
         return new self(
             inputTokens:   $inputTokens,
             outputTokens:  $outputTokens,
-            totalTokens:   $totalTokens,
+            totalTokens:   null, // will be ignored & calculated in constructor
             estimatedCost: $estimatedCost,
         );
     }
@@ -78,7 +80,7 @@ final class Usage implements UsageInterface
      * @param string   $model        Model name (e.g. 'gpt-4o')
      * @param int      $inputTokens  Number of prompt tokens
      * @param int      $outputTokens Number of completion tokens
-     * @param int|null $totalTokens  Total tokens (auto-derived if null)
+     * @param int|null $totalTokens  Total tokens (ignored, always computed)
      */
     public static function forModel(
         string $model,
@@ -89,7 +91,7 @@ final class Usage implements UsageInterface
         return new self(
             inputTokens:   $inputTokens,
             outputTokens:  $outputTokens,
-            totalTokens:   $totalTokens,
+            totalTokens:   null, // will be ignored & calculated in constructor
             estimatedCost: CostCalculator::calculate($model, $inputTokens, $outputTokens),
         );
     }
@@ -106,10 +108,10 @@ final class Usage implements UsageInterface
 
     public function getTotalTokens(): int
     {
-        return $this->totalTokens ?? ($this->inputTokens + $this->outputTokens);
+        return $this->totalTokens;
     }
 
-    public function getEstimatedCost(): float|null
+    public function getEstimatedCost(): ?float
     {
         return $this->estimatedCost;
     }
@@ -124,7 +126,7 @@ final class Usage implements UsageInterface
         return [
             'input_tokens' => $this->inputTokens,
             'output_tokens' => $this->outputTokens,
-            'total_tokens' => $this->getTotalTokens(),
+            'total_tokens' => $this->totalTokens,
             'estimated_cost' => $this->estimatedCost,
         ];
     }
