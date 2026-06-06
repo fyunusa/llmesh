@@ -102,19 +102,19 @@ final class TextGenerator
             $response = $this->provider->chat($messages, $providerOpts);
         }
 
+        $textResponse = new TextResponse(
+            text: $response->getText(),
+            usage: $response->getUsage(),
+            finishReason: $response->getFinishReason(),
+            raw: $response->getRaw(),
+        );
+
         // Save to memory if configured
         if ($options->memory && $options->sessionId) {
-            // At this point $response is always a TextResponse from the provider
-            if ($response instanceof TextResponse) {
-                $this->saveToMemory($options->memory, $options->sessionId, $response);
-            }
+            $this->saveToMemory($options->memory, $options->sessionId, $textResponse);
         }
 
-        // The provider always returns TextResponse objects; the ResponseInterface
-        // type hint exists for mock compatibility in tests.
-        assert($response instanceof TextResponse);
-
-        return $response;
+        return $textResponse;
     }
 
     // -------------------------------------------------------------------------
