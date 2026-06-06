@@ -30,25 +30,6 @@ $response = LLMesh::generateText(new OpenAIProvider($apiKey), GenerateTextOption
 echo $response->getText();
 ```
 
----
-
-## Differentiators vs Existing PHP Libraries
-
-| Feature                        | openai-php | LLPhant | Prism | **LLMesh** |
-|-------------------------------|------------|---------|-------|--------------|
-| Multi-provider abstraction     | ❌         | ✅      | ✅    | ✅           |
-| Streaming (SSE-ready)          | ✅         | ⚠️      | ⚠️    | ✅           |
-| Structured object generation   | ❌         | ❌      | ⚠️    | ✅           |
-| Agent loop                     | ❌         | ✅      | ❌    | ✅           |
-| RAG pipeline                   | ❌         | ✅      | ❌    | ✅           |
-| PSR-18 HTTP client             | ❌         | ❌      | ❌    | ✅           |
-| Framework-agnostic core        | ✅         | ❌      | ✅    | ✅           |
-| Laravel first-class adapter    | ❌         | ❌      | ✅    | ✅           |
-| Cost tracking                  | ❌         | ❌      | ❌    | ✅           |
-| Pluggable memory backends      | ❌         | ⚠️      | ❌    | ✅           |
-
----
-
 ## Features
 
 - **[generateText](docs/generators.md)**: Unified API for text generation with full parameter customization.
