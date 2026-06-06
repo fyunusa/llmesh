@@ -12,7 +12,7 @@ use LLMesh\Core\Exceptions\ValidationException;
  *
  * @psalm-immutable
  */
-final readonly class GenerateTextOptions
+final class GenerateTextOptions
 {
     /**
      * @param string|null             $prompt         User prompt for single-turn conversation
@@ -28,17 +28,17 @@ final readonly class GenerateTextOptions
      * @param \Closure|null           $onToolCall     Optional callback fired before each tool execution
      */
     public function __construct(
-        public string|null $prompt = null,
-        public array $messages = [],
-        public string|null $system = null,
-        public float|null $temperature = null,
-        public int|null $maxTokens = null,
-        public array $stopSequences = [],
-        public array $tools = [],
-        public MemoryStoreInterface|null $memory = null,
-        public string|null $sessionId = null,
-        public int $maxSteps = 5,
-        public ?\Closure $onToolCall = null,
+        public readonly string|null $prompt = null,
+        public readonly array $messages = [],
+        public readonly string|null $system = null,
+        public readonly float|null $temperature = null,
+        public readonly int|null $maxTokens = null,
+        public readonly array $stopSequences = [],
+        public readonly array $tools = [],
+        public readonly MemoryStoreInterface|null $memory = null,
+        public readonly string|null $sessionId = null,
+        public readonly int $maxSteps = 5,
+        public readonly ?\Closure $onToolCall = null,
     ) {
     }
 

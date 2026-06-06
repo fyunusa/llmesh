@@ -9,15 +9,15 @@ use Throwable;
 /**
  * Event dispatched when text generation fails.
  */
-final readonly class GenerationFailed
+final class GenerationFailed
 {
     /**
      * @param string $provider Provider name
      * @param Throwable $exception The exception that occurred
      */
     public function __construct(
-        public string $provider,
-        public Throwable $exception,
+        public readonly string $provider,
+        public readonly Throwable $exception,
     ) {
     }
 }

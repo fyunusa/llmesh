@@ -13,7 +13,7 @@ use LLMesh\Core\Generators\Usage;
  * Aggregates all per-step information into a single, fully serializable object
  * that is convenient for audit logging, debugging, and downstream processing.
  */
-final readonly class AgentResult
+final class AgentResult
 {
     /**
      * @param string         $finalText   The model's last text response (the "answer")
@@ -24,11 +24,11 @@ final readonly class AgentResult
      * @param UsageInterface $usage        Aggregated token usage across all steps
      */
     public function __construct(
-        public string $finalText,
-        public array $steps,
-        public int $totalSteps,
-        public bool $stoppedEarly,
-        public UsageInterface $usage,
+        public readonly string $finalText,
+        public readonly array $steps,
+        public readonly int $totalSteps,
+        public readonly bool $stoppedEarly,
+        public readonly UsageInterface $usage,
     ) {
     }
 

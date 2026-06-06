@@ -12,7 +12,7 @@ use LLMesh\Core\Contracts\UsageInterface;
  *
  * @psalm-immutable
  */
-final readonly class TextResponse implements ResponseInterface
+final class TextResponse implements ResponseInterface
 {
     /**
      * @param string $text The generated text
@@ -21,10 +21,10 @@ final readonly class TextResponse implements ResponseInterface
      * @param array $raw Raw provider response data
      */
     public function __construct(
-        public string $text,
-        public UsageInterface $usage,
-        public string $finishReason,
-        public array $raw,
+        public readonly string $text,
+        public readonly UsageInterface $usage,
+        public readonly string $finishReason,
+        public readonly array $raw,
     ) {
     }
 

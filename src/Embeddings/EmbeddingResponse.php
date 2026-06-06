@@ -13,7 +13,7 @@ use LLMesh\Core\Generators\Usage;
  *
  * @psalm-immutable
  */
-final readonly class EmbeddingResponse implements EmbeddingResponseInterface
+final class EmbeddingResponse implements EmbeddingResponseInterface
 {
     /**
      * @param float[]        $embedding  Float vector produced by the model
@@ -22,10 +22,10 @@ final readonly class EmbeddingResponse implements EmbeddingResponseInterface
      * @param string         $model      Model that produced the embedding
      */
     public function __construct(
-        public array $embedding,
-        public int $dimensions,
-        public UsageInterface $usage,
-        public string $model,
+        public readonly array $embedding,
+        public readonly int $dimensions,
+        public readonly UsageInterface $usage,
+        public readonly string $model,
     ) {
     }
 

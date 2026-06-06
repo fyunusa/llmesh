@@ -12,15 +12,15 @@ use LLMesh\Core\Generators\GenerateTextOptions;
  * Carries a snapshot of the options so listeners can log or modify
  * pipeline state before the first chunk arrives.
  */
-final readonly class StreamStarted
+final class StreamStarted
 {
     /**
      * @param string             $provider Short provider name (e.g. "Anthropic", "OpenAI")
      * @param GenerateTextOptions $options  Immutable snapshot of the generation options
      */
     public function __construct(
-        public string $provider,
-        public GenerateTextOptions $options,
+        public readonly string $provider,
+        public readonly GenerateTextOptions $options,
     ) {
     }
 }

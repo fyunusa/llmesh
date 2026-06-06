@@ -16,7 +16,7 @@ use LLMesh\Core\Observability\CostCalculator;
  *
  * @psalm-immutable
  */
-final readonly class Usage implements UsageInterface
+final class Usage implements UsageInterface
 {
     /**
      * @param int        $inputTokens   Number of input tokens used
@@ -25,10 +25,10 @@ final readonly class Usage implements UsageInterface
      * @param float|null $estimatedCost Estimated USD cost (auto-calculated if null and model provided)
      */
     public function __construct(
-        public int $inputTokens,
-        public int $outputTokens,
-        public int|null $totalTokens = null,
-        public float|null $estimatedCost = null,
+        public readonly int $inputTokens,
+        public readonly int $outputTokens,
+        public readonly int|null $totalTokens = null,
+        public readonly float|null $estimatedCost = null,
     ) {
     }
 

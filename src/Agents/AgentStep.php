@@ -15,7 +15,7 @@ use LLMesh\Core\Tools\ToolResult;
  *  - If the response contained tool calls the step records them plus their results.
  *  - If the response was a final answer the `toolCalls` / `toolResults` arrays are empty.
  */
-final readonly class AgentStep
+final class AgentStep
 {
     /**
      * @param int               $stepNumber  1-based step counter
@@ -26,12 +26,12 @@ final readonly class AgentStep
      * @param int               $durationMs  Wall-clock time for the provider call, in milliseconds
      */
     public function __construct(
-        public int $stepNumber,
-        public array $input,
-        public ResponseInterface $output,
-        public array $toolCalls = [],
-        public array $toolResults = [],
-        public int $durationMs = 0,
+        public readonly int $stepNumber,
+        public readonly array $input,
+        public readonly ResponseInterface $output,
+        public readonly array $toolCalls = [],
+        public readonly array $toolResults = [],
+        public readonly int $durationMs = 0,
     ) {
     }
 

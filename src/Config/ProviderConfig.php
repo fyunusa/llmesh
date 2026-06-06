@@ -7,7 +7,7 @@ namespace LLMesh\Core\Config;
 /**
  * Per-provider configuration.
  */
-final readonly class ProviderConfig
+final class ProviderConfig
 {
     /**
      * Constructor.
@@ -20,12 +20,12 @@ final readonly class ProviderConfig
      * @param array $options Additional provider-specific options
      */
     public function __construct(
-        public string $apiKey,
-        public ?string $baseUrl = null,
-        public ?string $model = null,
-        public ?int $maxTokens = null,
-        public ?float $temperature = null,
-        public array $options = [],
+        public readonly string $apiKey,
+        public readonly ?string $baseUrl = null,
+        public readonly ?string $model = null,
+        public readonly ?int $maxTokens = null,
+        public readonly ?float $temperature = null,
+        public readonly array $options = [],
     ) {
     }
 

@@ -9,7 +9,7 @@ namespace LLMesh\Core\Data;
  *
  * Represents a chunk of data received during streaming generation.
  */
-final readonly class ChunkDelta
+final class ChunkDelta
 {
     /**
      * Constructor.
@@ -19,9 +19,9 @@ final readonly class ChunkDelta
      * @param string|null $finishReason Optional reason the stream ended
      */
     public function __construct(
-        public ?string $text = null,
-        public ?ToolCall $toolCall = null,
-        public ?string $finishReason = null,
+        public readonly ?string $text = null,
+        public readonly ?ToolCall $toolCall = null,
+        public readonly ?string $finishReason = null,
     ) {
     }
 

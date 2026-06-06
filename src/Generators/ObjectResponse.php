@@ -15,7 +15,7 @@ use LLMesh\Core\Schema\SchemaValidator;
  * Carries the parsed PHP object/array (`object`), the token usage (`usage`),
  * and the raw provider response payload (`raw`).
  */
-final readonly class ObjectResponse
+final class ObjectResponse
 {
     /**
      * @param mixed          $object Parsed PHP value (array or scalar) matching the schema
@@ -23,9 +23,9 @@ final readonly class ObjectResponse
      * @param array          $raw    Raw provider response payload
      */
     public function __construct(
-        public mixed $object,
-        public UsageInterface $usage,
-        public array $raw,
+        public readonly mixed $object,
+        public readonly UsageInterface $usage,
+        public readonly array $raw,
     ) {
     }
 

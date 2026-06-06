@@ -9,7 +9,7 @@ use LLMesh\Core\Generators\ObjectResponse;
 /**
  * Dispatched when `LLMesh::generateObject()` completes successfully.
  */
-final readonly class ObjectGenerationCompleted
+final class ObjectGenerationCompleted
 {
     /**
      * @param string         $provider   Short provider name
@@ -17,9 +17,9 @@ final readonly class ObjectGenerationCompleted
      * @param int            $durationMs Wall-clock duration in milliseconds
      */
     public function __construct(
-        public string $provider,
-        public ObjectResponse $response,
-        public int $durationMs,
+        public readonly string $provider,
+        public readonly ObjectResponse $response,
+        public readonly int $durationMs,
     ) {
     }
 }

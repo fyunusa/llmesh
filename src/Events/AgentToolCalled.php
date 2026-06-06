@@ -13,7 +13,7 @@ use LLMesh\Core\Tools\ToolResult;
  * Multiple `AgentToolCalled` events may be dispatched within a single step when
  * the model requests parallel tool calls.
  */
-final readonly class AgentToolCalled
+final class AgentToolCalled
 {
     /**
      * @param ToolCall   $toolCall   The tool call requested by the model
@@ -21,9 +21,9 @@ final readonly class AgentToolCalled
      * @param int        $stepNumber The 1-based step number this call belongs to
      */
     public function __construct(
-        public ToolCall $toolCall,
-        public ToolResult $toolResult,
-        public int $stepNumber,
+        public readonly ToolCall $toolCall,
+        public readonly ToolResult $toolResult,
+        public readonly int $stepNumber,
     ) {
     }
 }

@@ -9,7 +9,7 @@ use LLMesh\Core\Generators\TextResponse;
 /**
  * Event dispatched when text generation completes successfully.
  */
-final readonly class GenerationCompleted
+final class GenerationCompleted
 {
     /**
      * @param string $provider Provider name
@@ -17,9 +17,9 @@ final readonly class GenerationCompleted
      * @param int $durationMs Duration in milliseconds
      */
     public function __construct(
-        public string $provider,
-        public TextResponse $response,
-        public int $durationMs,
+        public readonly string $provider,
+        public readonly TextResponse $response,
+        public readonly int $durationMs,
     ) {
     }
 }

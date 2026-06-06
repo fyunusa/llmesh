@@ -9,15 +9,15 @@ use LLMesh\Core\Generators\GenerateObjectOptions;
 /**
  * Dispatched immediately before `LLMesh::generateObject()` calls the provider.
  */
-final readonly class ObjectGenerationStarted
+final class ObjectGenerationStarted
 {
     /**
      * @param string                $provider Short provider name
      * @param GenerateObjectOptions $options  Immutable snapshot of the generation options
      */
     public function __construct(
-        public string $provider,
-        public GenerateObjectOptions $options,
+        public readonly string $provider,
+        public readonly GenerateObjectOptions $options,
     ) {
     }
 }

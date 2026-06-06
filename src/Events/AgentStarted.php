@@ -9,7 +9,7 @@ use LLMesh\Core\Contracts\ProviderInterface;
 /**
  * Dispatched immediately before the agent loop begins.
  */
-final readonly class AgentStarted
+final class AgentStarted
 {
     /**
      * @param ProviderInterface $provider    The provider that will be called
@@ -18,10 +18,10 @@ final readonly class AgentStarted
      * @param int               $maxSteps     Hard ceiling on loop iterations
      */
     public function __construct(
-        public ProviderInterface $provider,
-        public string $systemPrompt,
-        public array $toolNames,
-        public int $maxSteps,
+        public readonly ProviderInterface $provider,
+        public readonly string $systemPrompt,
+        public readonly array $toolNames,
+        public readonly int $maxSteps,
     ) {
     }
 }

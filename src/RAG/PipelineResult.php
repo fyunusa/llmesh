@@ -7,7 +7,7 @@ namespace LLMesh\Core\RAG;
 /**
  * Immutable statistics from a single `Pipeline::run()` execution.
  */
-final readonly class PipelineResult
+final class PipelineResult
 {
     /**
      * @param int $documentsLoaded  Number of raw documents returned by the loader
@@ -17,11 +17,11 @@ final readonly class PipelineResult
      * @param int $totalTokensUsed  Aggregate input tokens consumed across all embed calls
      */
     public function __construct(
-        public int $documentsLoaded,
-        public int $chunksCreated,
-        public int $chunksStored,
-        public int $durationMs,
-        public int $totalTokensUsed,
+        public readonly int $documentsLoaded,
+        public readonly int $chunksCreated,
+        public readonly int $chunksStored,
+        public readonly int $durationMs,
+        public readonly int $totalTokensUsed,
     ) {
     }
 

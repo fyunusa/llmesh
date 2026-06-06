@@ -11,7 +11,7 @@ namespace LLMesh\Core\Events;
  * once the last chunk has been yielded, giving listeners access to aggregate
  * statistics: total chunks received and wall-clock duration.
  */
-final readonly class StreamCompleted
+final class StreamCompleted
 {
     /**
      * @param string $provider    Short provider name (e.g. "Anthropic", "OpenAI")
@@ -19,9 +19,9 @@ final readonly class StreamCompleted
      * @param int    $durationMs  Wall-clock duration in milliseconds from start to completion
      */
     public function __construct(
-        public string $provider,
-        public int $totalChunks,
-        public int $durationMs,
+        public readonly string $provider,
+        public readonly int $totalChunks,
+        public readonly int $durationMs,
     ) {
     }
 }

@@ -17,7 +17,7 @@ use LLMesh\Core\Schema\SchemaInterface;
  *
  * @psalm-immutable
  */
-final readonly class GenerateObjectOptions
+final class GenerateObjectOptions
 {
     /**
      * @param string|null             $prompt         User prompt (single-turn)
@@ -32,16 +32,16 @@ final readonly class GenerateObjectOptions
      * @param string|null             $sessionId      Session ID for memory
      */
     public function __construct(
-        public string|null $prompt = null,
-        public array $messages = [],
-        public string|null $system = null,
-        public float|null $temperature = null,
-        public int|null $maxTokens = null,
-        public array $stopSequences = [],
-        public SchemaInterface|null $schema = null,
-        public OutputMode $mode = OutputMode::JSON_MODE,
-        public MemoryStoreInterface|null $memory = null,
-        public string|null $sessionId = null,
+        public readonly string|null $prompt = null,
+        public readonly array $messages = [],
+        public readonly string|null $system = null,
+        public readonly float|null $temperature = null,
+        public readonly int|null $maxTokens = null,
+        public readonly array $stopSequences = [],
+        public readonly SchemaInterface|null $schema = null,
+        public readonly OutputMode $mode = OutputMode::JSON_MODE,
+        public readonly MemoryStoreInterface|null $memory = null,
+        public readonly string|null $sessionId = null,
     ) {
     }
 

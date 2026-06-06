@@ -7,7 +7,7 @@ namespace LLMesh\Core\Data;
 /**
  * Data Transfer Object for conversation messages.
  */
-final readonly class Message
+final class Message
 {
     /**
      * Constructor.
@@ -18,10 +18,10 @@ final readonly class Message
      * @param string|null $toolName Optional name of the tool that generated this message
      */
     public function __construct(
-        public MessageRole $role,
-        public string $content,
-        public ?string $toolCallId = null,
-        public ?string $toolName = null,
+        public readonly MessageRole $role,
+        public readonly string $content,
+        public readonly ?string $toolCallId = null,
+        public readonly ?string $toolName = null,
     ) {
     }
 

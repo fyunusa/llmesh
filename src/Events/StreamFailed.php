@@ -11,15 +11,15 @@ namespace LLMesh\Core\Events;
  * provider throws during chunk iteration, allowing listeners to log or
  * alert on streaming failures separately from non-streaming failures.
  */
-final readonly class StreamFailed
+final class StreamFailed
 {
     /**
      * @param string     $provider  Short provider name (e.g. "Anthropic", "OpenAI")
      * @param \Throwable $exception The exception that caused the failure
      */
     public function __construct(
-        public string $provider,
-        public \Throwable $exception,
+        public readonly string $provider,
+        public readonly \Throwable $exception,
     ) {
     }
 }

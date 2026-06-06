@@ -11,7 +11,7 @@ namespace LLMesh\Core\Tools;
  * the handler's return value or error message (`result`), and a flag
  * indicating whether the execution succeeded (`isError`).
  */
-final readonly class ToolResult
+final class ToolResult
 {
     /**
      * @param string $toolCallId The LLM-assigned call ID (used when replying to the model)
@@ -20,10 +20,10 @@ final readonly class ToolResult
      * @param bool   $isError    True when the tool threw an exception
      */
     public function __construct(
-        public string $toolCallId,
-        public string $toolName,
-        public mixed $result,
-        public bool $isError,
+        public readonly string $toolCallId,
+        public readonly string $toolName,
+        public readonly mixed $result,
+        public readonly bool $isError,
     ) {
     }
 

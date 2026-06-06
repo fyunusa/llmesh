@@ -10,7 +10,7 @@ namespace LLMesh\Core\RAG;
  * Documents flow through: load → split → embed → store.
  * Once embedded, a Document carries its float[] vector alongside the text.
  */
-final readonly class Document
+final class Document
 {
     /**
      * @param string       $id        Unique identifier (auto-generated UUID v4 when not supplied)
@@ -19,10 +19,10 @@ final readonly class Document
      * @param float[]|null $embedding Embedding vector, set after the embed step
      */
     public function __construct(
-        public string $id,
-        public string $content,
-        public array $metadata = [],
-        public ?array $embedding = null,
+        public readonly string $id,
+        public readonly string $content,
+        public readonly array $metadata = [],
+        public readonly ?array $embedding = null,
     ) {
     }
 

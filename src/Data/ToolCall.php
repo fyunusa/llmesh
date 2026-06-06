@@ -7,7 +7,7 @@ namespace LLMesh\Core\Data;
 /**
  * Data Transfer Object for tool calls from LLM responses.
  */
-final readonly class ToolCall
+final class ToolCall
 {
     /**
      * Constructor.
@@ -17,9 +17,9 @@ final readonly class ToolCall
      * @param array $arguments Arguments to pass to the tool
      */
     public function __construct(
-        public string $id,
-        public string $name,
-        public array $arguments,
+        public readonly string $id,
+        public readonly string $name,
+        public readonly array $arguments,
     ) {
     }
 

@@ -12,15 +12,15 @@ use LLMesh\Core\Agents\AgentStep;
  * The exception is also re-thrown after this event so callers can catch it
  * directly if they prefer not to use the event system.
  */
-final readonly class AgentFailed
+final class AgentFailed
 {
     /**
      * @param \Throwable  $exception     The exception that caused the failure
      * @param AgentStep[] $stepsComplete All steps that ran successfully before the failure
      */
     public function __construct(
-        public \Throwable $exception,
-        public array $stepsComplete,
+        public readonly \Throwable $exception,
+        public readonly array $stepsComplete,
     ) {
     }
 }
