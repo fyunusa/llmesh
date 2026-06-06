@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
- * @covers \LLMesh\Core\LLMesh::streamText
+ * @covers \LLMesh\Core\LLMesh
  */
 final class LLMeshStreamTextTest extends TestCase
 {
