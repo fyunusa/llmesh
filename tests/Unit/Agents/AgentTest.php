@@ -395,4 +395,50 @@ final class AgentTest extends TestCase
 
         $this->assertNotSame($agent1, $agent2);
     }
+
+    public function testTotalCostIsNullWhenAnyStepCostIsNull(): void
+    {
+        $step1Response = new TextResponse(
+            text: 'One',
+            usage: new Usage(100, 50, estimatedCost: 0.002),
+            finishReason: 'stop',
+            raw: [],
+        );
+        $step2Response = new TextResponse(
+            text: 'Two',
+            usage: new Usage(200, 80, estimatedCost: null),
+            finishReason: 'stop',
+            raw: [],
+        );
+
+        $step1 = new AgentStep(1, [], $step1Response);
+        $step2 = new AgentStep(2, [], $step2Response);
+
+        $result = AgentResult::fromSteps('Final Text', [$step1, $step2], false);
+
+        $this->assertNull($result->getTotalCost());
+    }
+
+    public function testTotalCostIsSumWhenAllStepCostsAreKnown(): void
+    {
+        $step1Response = new TextResponse(
+            text: 'One',
+            usage: new Usage(100, 50, estimatedCost: 0.002),
+            finishReason: 'stop',
+            raw: [],
+        );
+        $step2Response = new TextResponse(
+            text: 'Two',
+            usage: new Usage(200, 80, estimatedCost: 0.005),
+            finishReason: 'stop',
+            raw: [],
+        );
+
+        $step1 = new AgentStep(1, [], $step1Response);
+        $step2 = new AgentStep(2, [], $step2Response);
+
+        $result = AgentResult::fromSteps('Final Text', [$step1, $step2], false);
+
+        $this->assertEqualsWithDelta(0.007, $result->getTotalCost(), 0.0001);
+    }
 }

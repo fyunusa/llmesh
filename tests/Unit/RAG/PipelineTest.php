@@ -78,6 +78,7 @@ final class PipelineTest extends TestCase
 
         // 3. Mock Provider for Embedding
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $response1 = new EmbeddingResponse([0.1, 0.2], 2, new Usage(5, 0), 'test-model');
         $response2 = new EmbeddingResponse([0.3, 0.4], 2, new Usage(10, 0), 'test-model');
 
@@ -150,6 +151,7 @@ final class PipelineTest extends TestCase
     public function testRetrieveExecutesQuerySearchAndReconstructsDocuments(): void
     {
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $provider->expects($this->once())
             ->method('embed')
             ->with('Search query', [])
@@ -201,6 +203,7 @@ final class PipelineTest extends TestCase
 
         // 2. Missing store
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $pipeline = $pipeline->embed($provider);
 
         try {
@@ -223,6 +226,7 @@ final class PipelineTest extends TestCase
         $splitter = new \LLMesh\Core\RAG\Splitters\RecursiveCharacterSplitter(50, 10);
 
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $response = new EmbeddingResponse([0.5, 0.5], 2, new Usage(5, 0), 'test-model');
         $provider->expects($this->once())
             ->method('embed')

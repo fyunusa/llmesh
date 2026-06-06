@@ -125,11 +125,63 @@ final class LoggingMiddleware extends AbstractMiddleware
             $this->requestLogger->logSuccess(
                 $this->resolveProvider(),
                 $this->resolveModel($options),
-                $response,
+                $response->getUsage(),
                 $duration,
             );
 
             return $response;
+        } catch (RateLimitException $e) {
+            $this->requestLogger->logRateLimit($this->resolveProvider(), $e);
+            throw $e;
+        } catch (\Throwable $e) {
+            $this->requestLogger->logError($this->resolveProvider(), $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function embedBatch(array $inputs, array $options = []): array
+    {
+        $startMs = $this->nowMs();
+
+        try {
+            $responses = $this->next->embedBatch($inputs, $options);
+            $duration  = $this->nowMs() - $startMs;
+
+            $inputTokens  = 0;
+            $outputTokens = 0;
+            $totalCost    = 0.0;
+            $anyCostNull  = false;
+
+            foreach ($responses as $res) {
+                $u = $res->getUsage();
+                $inputTokens  += $u->getInputTokens();
+                $outputTokens += $u->getOutputTokens();
+
+                $cost = $u->getEstimatedCost();
+                if ($cost === null) {
+                    $anyCostNull = true;
+                } else {
+                    $totalCost += $cost;
+                }
+            }
+
+            $aggregatedUsage = new \LLMesh\Core\Generators\Usage(
+                inputTokens:   $inputTokens,
+                outputTokens:  $outputTokens,
+                estimatedCost: $anyCostNull ? null : $totalCost,
+            );
+
+            $this->requestLogger->logSuccess(
+                $this->resolveProvider(),
+                $this->resolveModel($options),
+                $aggregatedUsage,
+                $duration,
+            );
+
+            return $responses;
         } catch (RateLimitException $e) {
             $this->requestLogger->logRateLimit($this->resolveProvider(), $e);
             throw $e;

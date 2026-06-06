@@ -104,22 +104,26 @@ final class AgentResult
     ): self {
         $inputTokens  = 0;
         $outputTokens = 0;
-        $totalCost    = null;
+        $totalCost    = 0.0;
+        $anyCostNull  = false;
 
         foreach ($steps as $step) {
             $u = $step->output->getUsage();
             $inputTokens  += $u->getInputTokens();
             $outputTokens += $u->getOutputTokens();
 
-            if ($u->getEstimatedCost() !== null) {
-                $totalCost = ($totalCost ?? 0.0) + $u->getEstimatedCost();
+            $cost = $u->getEstimatedCost();
+            if ($cost === null) {
+                $anyCostNull = true;
+            } else {
+                $totalCost += $cost;
             }
         }
 
         $aggregatedUsage = new Usage(
             inputTokens:   $inputTokens,
             outputTokens:  $outputTokens,
-            estimatedCost: $totalCost,
+            estimatedCost: $anyCostNull ? null : $totalCost,
         );
 
         return new self(

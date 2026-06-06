@@ -30,7 +30,7 @@ final class TextGeneratorMemoryTest extends TestCase
             ]);
 
         $mockMemory
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('append')
             ->willReturnCallback(function ($sid, $message) use (&$appendedMessages) {
                 $appendedMessages[] = $message;
@@ -64,10 +64,12 @@ final class TextGeneratorMemoryTest extends TestCase
 
         $this->assertSame('New response', $response->getText());
 
-        // Verify assistant response was appended to memory
-        $this->assertCount(1, $appendedMessages);
-        $this->assertSame('assistant', $appendedMessages[0]['role']);
-        $this->assertSame('New response', $appendedMessages[0]['content']);
+        // Verify user and assistant responses were appended to memory
+        $this->assertCount(2, $appendedMessages);
+        $this->assertSame('user', $appendedMessages[0]['role']);
+        $this->assertSame('New message', $appendedMessages[0]['content']);
+        $this->assertSame('assistant', $appendedMessages[1]['role']);
+        $this->assertSame('New response', $appendedMessages[1]['content']);
     }
 
     public function testDoesNotLoadMemoryWhenNotConfigured(): void
@@ -112,6 +114,39 @@ final class TextGeneratorMemoryTest extends TestCase
         $options = GenerateTextOptions::make()->withPrompt('Hello');
 
         // Should not throw even without memory configured
+        $generator->generate($options);
+    }
+
+    public function testMemoryNotSavedWhenProviderThrows(): void
+    {
+        $mockMemory = $this->createMock(MemoryStoreInterface::class);
+        $mockProvider = $this->createMock(ProviderInterface::class);
+
+        // Memory get() is called (to load history before generation)
+        $mockMemory->expects($this->once())
+            ->method('get')
+            ->with('session-1')
+            ->willReturn([]);
+
+        // Memory append() is called once for user turn (inside build())
+        $mockMemory->expects($this->once())
+            ->method('append')
+            ->with('session-1', $this->callback(function ($message) {
+                return $message['role'] === 'user' && $message['content'] === 'Hello';
+            }));
+
+        // Provider throws
+        $mockProvider->expects($this->once())
+            ->method('chat')
+            ->willThrowException(new \LLMesh\Core\Exceptions\ProviderException('API error', 'openai'));
+
+        $options = GenerateTextOptions::make()
+            ->withPrompt('Hello')
+            ->withMemory($mockMemory, 'session-1');
+
+        $this->expectException(\LLMesh\Core\Exceptions\ProviderException::class);
+
+        $generator = new TextGenerator($mockProvider);
         $generator->generate($options);
     }
 }

@@ -36,6 +36,7 @@ final class EmbeddingGeneratorTest extends TestCase
     public function testEmbedReturnsSingleEmbeddingResponse(): void
     {
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $provider->expects($this->once())
             ->method('embed')
             ->with('hello', [])
@@ -52,6 +53,7 @@ final class EmbeddingGeneratorTest extends TestCase
     {
         $options  = ['model' => 'text-embedding-3-large'];
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $provider->expects($this->once())
             ->method('embed')
             ->with('text', $options)
@@ -67,7 +69,9 @@ final class EmbeddingGeneratorTest extends TestCase
     public function testEmbedBatchReturnsCorrectNumberOfResponses(): void
     {
         $provider = $this->createMock(ProviderInterface::class);
-        $provider->method('supports')->willReturn(false);
+        $provider->method('supports')->willReturnCallback(function ($cap) {
+            return $cap === 'embeddings';
+        });
         $provider->method('embed')
             ->willReturn($this->makeEmbeddingResponse([0.1, 0.2]));
 
@@ -85,7 +89,9 @@ final class EmbeddingGeneratorTest extends TestCase
     {
         $callIndex = 0;
         $provider  = $this->createMock(ProviderInterface::class);
-        $provider->method('supports')->willReturn(false);
+        $provider->method('supports')->willReturnCallback(function ($cap) {
+            return $cap === 'embeddings';
+        });
         $provider->method('embed')
             ->willReturnCallback(function (string $input) use (&$callIndex): EmbeddingResponse {
                 $callIndex++;
@@ -107,7 +113,9 @@ final class EmbeddingGeneratorTest extends TestCase
     public function testEmbedBatchMakesIndividualCallsWhenProviderLacksBatchSupport(): void
     {
         $provider = $this->createMock(ProviderInterface::class);
-        $provider->method('supports')->with('embeddings')->willReturn(false);
+        $provider->method('supports')->willReturnCallback(function ($cap) {
+            return $cap === 'embeddings';
+        });
 
         // Must be called exactly once per input
         $provider->expects($this->exactly(3))
@@ -118,15 +126,15 @@ final class EmbeddingGeneratorTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // embedBatch() — provider WITH 'embeddings' support
+    // embedBatch() — provider WITH 'embeddings' support but NO 'batch_embeddings'
     // -------------------------------------------------------------------------
 
-    public function testEmbedBatchMakesIndividualCallsEvenWhenProviderSupportsBatch(): void
+    public function testEmbedBatchMakesIndividualCallsEvenWhenProviderSupportsEmbeddingsButNotBatch(): void
     {
-        // EmbeddingGenerator always calls embed() once per input to guarantee
-        // index ordering, regardless of whether the provider supports batch.
         $provider = $this->createMock(ProviderInterface::class);
-        $provider->method('supports')->with('embeddings')->willReturn(true);
+        $provider->method('supports')->willReturnCallback(function ($cap) {
+            return $cap === 'embeddings';
+        });
 
         $provider->expects($this->exactly(2))
             ->method('embed')
@@ -143,6 +151,7 @@ final class EmbeddingGeneratorTest extends TestCase
     public function testEmbedBatchWithEmptyInputsReturnsEmptyArray(): void
     {
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $provider->expects($this->never())->method('embed');
 
         $results = (new EmbeddingGenerator())->embedBatch($provider, []);
@@ -161,11 +170,77 @@ final class EmbeddingGeneratorTest extends TestCase
         $mockResponse->method('getUsage')->willReturn(new Usage(3, 0));
 
         $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->with('embeddings')->willReturn(true);
         $provider->method('embed')->willReturn($mockResponse);
 
         $result = (new EmbeddingGenerator())->embed($provider, 'text');
 
         $this->assertInstanceOf(EmbeddingResponse::class, $result);
         $this->assertSame([0.9, 0.1], $result->getEmbedding());
+    }
+
+    // -------------------------------------------------------------------------
+    // New Tests
+    // -------------------------------------------------------------------------
+
+    public function testEmbedThrowsRuntimeExceptionForNonEmbeddingProvider(): void
+    {
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->expects($this->once())
+            ->method('supports')
+            ->with('embeddings')
+            ->willReturn(false);
+        $provider->expects($this->never())->method('embed');
+
+        $this->expectException(\RuntimeException::class);
+
+        $generator = new EmbeddingGenerator();
+        $generator->embed($provider, 'test input');
+    }
+
+    public function testEmbedBatchThrowsRuntimeExceptionForNonEmbeddingProvider(): void
+    {
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->expects($this->once())
+            ->method('supports')
+            ->with('embeddings')
+            ->willReturn(false);
+        $provider->expects($this->never())->method('embed');
+        $provider->expects($this->never())->method('embedBatch');
+
+        $this->expectException(\RuntimeException::class);
+
+        $generator = new EmbeddingGenerator();
+        $generator->embedBatch($provider, ['input one', 'input two']);
+    }
+
+    public function testEmbedBatchUsesSingleApiCallForBatchCapableProvider(): void
+    {
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('supports')->willReturnCallback(function ($cap) {
+            return $cap === 'embeddings' || $cap === 'batch_embeddings';
+        });
+
+        $mockResponses = [
+            $this->makeEmbeddingResponse([0.1, 0.2]),
+            $this->makeEmbeddingResponse([0.3, 0.4]),
+            $this->makeEmbeddingResponse([0.5, 0.6]),
+        ];
+
+        // embedBatch called ONCE (not 3 times)
+        $provider->expects($this->once())
+            ->method('embedBatch')
+            ->with(['input 1', 'input 2', 'input 3'], [])
+            ->willReturn($mockResponses);
+
+        $provider->expects($this->never())->method('embed');
+
+        $generator = new EmbeddingGenerator();
+        $results   = $generator->embedBatch($provider, ['input 1', 'input 2', 'input 3']);
+
+        $this->assertCount(3, $results);
+        $this->assertSame([0.1, 0.2], $results[0]->getEmbedding());
+        $this->assertSame([0.3, 0.4], $results[1]->getEmbedding());
+        $this->assertSame([0.5, 0.6], $results[2]->getEmbedding());
     }
 }

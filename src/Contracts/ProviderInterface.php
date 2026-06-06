@@ -54,6 +54,16 @@ interface ProviderInterface
     public function embed(string|array $input, array $options = []): EmbeddingResponseInterface;
 
     /**
+     * Batch-embed multiple inputs in a single call or sequentially.
+     *
+     * @param string[] $inputs  Array of texts to embed
+     * @param array    $options Provider-specific options
+     *
+     * @return EmbeddingResponseInterface[] An array of embedding responses
+     */
+    public function embedBatch(array $inputs, array $options = []): array;
+
+    /**
      * Check if provider supports a specific capability.
      *
      * @param string $capability One of: 'streaming', 'tools', 'embeddings'

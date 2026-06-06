@@ -32,6 +32,15 @@ final class EmbeddingGenerator
         string $input,
         array $options = [],
     ): EmbeddingResponse {
+        if (!$provider->supports('embeddings')) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Provider "%s" does not support embeddings. Use a provider that returns true for supports("embeddings").',
+                    get_class($provider)
+                )
+            );
+        }
+
         $raw = $provider->embed($input, $options);
 
         // Ensure we always return our concrete EmbeddingResponse
@@ -71,77 +80,48 @@ final class EmbeddingGenerator
         array $inputs,
         array $options = [],
     ): array {
+        if (!$provider->supports('embeddings')) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Provider "%s" does not support embeddings. Use a provider that returns true for supports("embeddings").',
+                    get_class($provider)
+                )
+            );
+        }
+
         if (empty($inputs)) {
             return [];
         }
 
-        // Providers that natively support batch: pass the full array in one call.
-        // We detect this by checking whether the provider reports embeddings support
-        // AND whether its embed() method accepts an array input (OpenAI does).
-        if ($provider->supports('embeddings')) {
-            return $this->batchViaProvider($provider, $inputs, $options);
+        $inputValues = array_values($inputs);
+        $originalKeys = array_keys($inputs);
+
+        // If provider supports native batch embedding
+        if ($provider->supports('batch_embeddings')) {
+            $responses = $provider->embedBatch($inputValues, $options);
+
+            $results = [];
+            foreach ($originalKeys as $i => $key) {
+                $raw = $responses[$i];
+                if ($raw instanceof EmbeddingResponse) {
+                    $results[$key] = $raw;
+                } else {
+                    $results[$key] = new EmbeddingResponse(
+                        embedding:  $raw->getEmbedding(),
+                        dimensions: $raw->getDimensions(),
+                        usage:      $raw->getUsage(),
+                        model:      '',
+                    );
+                }
+            }
+            return $results;
         }
 
-        // Fallback: sequential individual calls
-        return $this->batchSequential($provider, $inputs, $options);
-    }
-
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
-
-    /**
-     * Issue a single batch call and split the result back into per-input responses.
-     *
-     * The provider's `embed()` implementation must accept `string[]` when called
-     * with an array and must return an `EmbeddingResponse` whose embedding is
-     * the first entry.  Providers that return multiple embeddings in one response
-     * (like OpenAI) must implement `embedBatch()` or expose per-index access —
-     * here we rely on the provider having already returned a single aggregated
-     * response per the current `ProviderInterface::embed()` contract.
-     *
-     * For providers like OpenAI that return only the first embedding when given
-     * an array, we fall through to sequential calls instead.
-     *
-     * Strategy:
-     *  1. Try a batch call (passing the array of inputs).
-     *  2. If the provider returns a single embedding (not per-input), fall back
-     *     to sequential calls so indices are always correct.
-     *
-     * @param  string[] $inputs
-     * @return EmbeddingResponse[]
-     */
-    private function batchViaProvider(
-        ProviderInterface $provider,
-        array $inputs,
-        array $options,
-    ): array {
-        // Build results sequentially to guarantee index ordering.
-        // Each input gets its own embed() call so every index maps 1-to-1.
-        // Providers that truly support batching (e.g. OpenAI) can override this
-        // by accepting an array in their embed() and returning the right embedding
-        // for that index — but since ProviderInterface::embed() only returns one
-        // EmbeddingResponseInterface, we call once per input for safety.
-        return $this->batchSequential($provider, $inputs, $options);
-    }
-
-    /**
-     * Call `embed()` once per input, in order.
-     *
-     * @param  string[] $inputs
-     * @return EmbeddingResponse[]
-     */
-    private function batchSequential(
-        ProviderInterface $provider,
-        array $inputs,
-        array $options,
-    ): array {
+        // Sequential fallback
         $results = [];
-
-        foreach (array_values($inputs) as $index => $input) {
-            $results[$index] = $this->embed($provider, $input, $options);
+        foreach ($originalKeys as $i => $key) {
+            $results[$key] = $this->embed($provider, $inputValues[$i], $options);
         }
-
         return $results;
     }
 }

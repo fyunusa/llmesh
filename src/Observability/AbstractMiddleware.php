@@ -55,6 +55,14 @@ abstract class AbstractMiddleware implements MiddlewareInterface
     /**
      * {@inheritDoc}
      */
+    public function embedBatch(array $inputs, array $options = []): array
+    {
+        return $this->next->embedBatch($inputs, $options);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function supports(string $capability): bool
     {
         return $this->next->supports($capability);

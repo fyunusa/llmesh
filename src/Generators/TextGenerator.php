@@ -9,6 +9,7 @@ use LLMesh\Core\Contracts\ProviderInterface;
 use LLMesh\Core\Data\Message;
 use LLMesh\Core\Data\MessageRole;
 use LLMesh\Core\Data\ToolCall;
+use LLMesh\Core\Memory\MemoryMessageBuilder;
 use LLMesh\Core\Tools\Tool;
 use LLMesh\Core\Tools\ToolCallExtractor;
 use LLMesh\Core\Tools\ToolExecutor;
@@ -49,7 +50,12 @@ final class TextGenerator
     {
         $options->validate();
 
-        $messages     = $this->buildMessages($options);
+        $builder = new MemoryMessageBuilder();
+
+        $messages = ($options->memory !== null && $options->sessionId !== null)
+            ? $builder->build($options->sessionId, $options->prompt ?? '', $options->memory)
+            : $this->buildMessages($options);
+
         $providerOpts = $this->buildProviderOptions($options);
 
         // Separate Tool instances from raw tool definitions so we can execute them
@@ -63,58 +69,59 @@ final class TextGenerator
         $executor = new ToolExecutor();
         $step     = 0;
 
-        $response = $this->provider->chat($messages, $providerOpts);
-
-        // Multi-step tool loop
-        while (
-            $response->getFinishReason() === 'tool_calls'
-            && !empty($toolObjects)
-            && $step < $options->maxSteps
-        ) {
-            $step++;
-
-            // Extract ToolCall DTOs from the raw provider payload
-            $toolCalls = ToolCallExtractor::extract($response->getRaw());
-
-            if (empty($toolCalls)) {
-                break; // No parseable tool calls — stop the loop
-            }
-
-            // Fire the onToolCall callback before executing each tool
-            if ($options->onToolCall !== null) {
-                foreach ($toolCalls as $toolCall) {
-                    ($options->onToolCall)($toolCall);
-                }
-            }
-
-            // Execute all tool calls; errors are wrapped in ToolResult::error()
-            $toolResults = $executor->executeAll($toolCalls, $toolObjects);
-
-            // Append the assistant's tool-call request to the conversation
-            $messages[] = $this->buildAssistantToolCallMessage($response, $toolCalls);
-
-            // Append one tool-result message per result
-            foreach ($toolResults as $toolResult) {
-                $messages[] = $this->buildToolResultMessage($toolResult);
-            }
-
-            // Call the provider again with the extended conversation
+        try {
             $response = $this->provider->chat($messages, $providerOpts);
+
+            // Multi-step tool loop
+            while (
+                $response->getFinishReason() === 'tool_calls'
+                && !empty($toolObjects)
+                && $step < $options->maxSteps
+            ) {
+                $step++;
+
+                // Extract ToolCall DTOs from the raw provider payload
+                $toolCalls = ToolCallExtractor::extract($response->getRaw());
+
+                if (empty($toolCalls)) {
+                    break; // No parseable tool calls — stop the loop
+                }
+
+                // Fire the onToolCall callback before executing each tool
+                if ($options->onToolCall !== null) {
+                    foreach ($toolCalls as $toolCall) {
+                        ($options->onToolCall)($toolCall);
+                    }
+                }
+
+                // Execute all tool calls; errors are wrapped in ToolResult::error()
+                $toolResults = $executor->executeAll($toolCalls, $toolObjects);
+
+                // Append the assistant's tool-call request to the conversation
+                $messages[] = $this->buildAssistantToolCallMessage($response, $toolCalls);
+
+                // Append one tool-result message per result
+                foreach ($toolResults as $toolResult) {
+                    $messages[] = $this->buildToolResultMessage($toolResult);
+                }
+
+                // Call the provider again with the extended conversation
+                $response = $this->provider->chat($messages, $providerOpts);
+            }
+        } catch (\Throwable $e) {
+            throw $e;
         }
 
-        $textResponse = new TextResponse(
+        if ($options->memory !== null && $options->sessionId !== null) {
+            $builder->save($options->sessionId, $response->getText(), $options->memory);
+        }
+
+        return new TextResponse(
             text: $response->getText(),
             usage: $response->getUsage(),
             finishReason: $response->getFinishReason(),
             raw: $response->getRaw(),
         );
-
-        // Save to memory if configured
-        if ($options->memory && $options->sessionId) {
-            $this->saveToMemory($options->memory, $options->sessionId, $textResponse);
-        }
-
-        return $textResponse;
     }
 
     // -------------------------------------------------------------------------
@@ -153,37 +160,11 @@ final class TextGenerator
 
     private function buildMessages(GenerateTextOptions $options): array
     {
-        // If messages are already provided, use them
         if (!empty($options->messages)) {
-            $messages = $options->messages;
-        } else {
-            // Build from prompt
-            $messages   = [];
-            $messages[] = Message::user($options->prompt ?? '');
+            return $options->messages;
         }
 
-        // Load history from memory if configured
-        if ($options->memory && $options->sessionId) {
-            $history = $options->memory->get($options->sessionId);
-            if (!empty($history)) {
-                $historyMessages = array_map(function ($item) {
-                    if ($item instanceof Message) {
-                        return $item;
-                    }
-                    // Handle array format from storage
-                    $role = MessageRole::from($item['role']);
-                    return new Message(
-                        role: $role,
-                        content: $item['content'],
-                        toolCallId: $item['toolCallId'] ?? null,
-                        toolName: $item['toolName'] ?? null,
-                    );
-                }, $history);
-                $messages = array_merge($historyMessages, $messages);
-            }
-        }
-
-        return $messages;
+        return [Message::user($options->prompt ?? '')];
     }
 
     /**
@@ -243,18 +224,5 @@ final class TextGenerator
         // Note: raw tool defs are injected after separateTools() in generate()
 
         return $providerOptions;
-    }
-
-    // -------------------------------------------------------------------------
-    // Memory
-    // -------------------------------------------------------------------------
-
-    private function saveToMemory(
-        MemoryStoreInterface $memory,
-        string $sessionId,
-        TextResponse $response,
-    ): void {
-        $assistantMessage = Message::assistant($response->getText());
-        $memory->append($sessionId, $assistantMessage->toArray());
     }
 }
