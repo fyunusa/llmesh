@@ -31,7 +31,7 @@ jobs:
       - name: Run tests
         run: composer test
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           draft: false
@@ -39,3 +39,9 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger Packagist Sync
+        run: |
+          curl -XPOST -H "Content-Type: application/json" \
+            -d '{"repository":{"url":"https://github.com/fyunusa/llmesh"}}' \
+            "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_API_TOKEN }}"

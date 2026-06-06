@@ -5,7 +5,7 @@
 [![Tests](https://github.com/fyunusa/llmesh/actions/workflows/tests.yml/badge.svg)](https://github.com/fyunusa/llmesh/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-LLMesh is a lightweight, framework-agnostic PHP SDK designed to provide a unified interface for working with different AI providers.
+LLMesh is a lightweight, framework-agnostic PHP SDK designed to provide a unified, composable interface for working with different AI models and providers, standardizing how PHP developers build AI-powered applications, tools, and agents.
 
 ---
 
@@ -26,41 +26,47 @@ use LLMesh\Core\LLMesh;
 use LLMesh\Core\Generators\GenerateTextOptions;
 use LLMesh\OpenAI\OpenAIProvider;
 
-$response = LLMesh::generateText(
-    new OpenAIProvider($apiKey),
-    GenerateTextOptions::make()->withPrompt('Explain recursion in 1 sentence.')
-);
-
+$response = LLMesh::generateText(new OpenAIProvider($apiKey), GenerateTextOptions::make()->withPrompt('Hello!'));
 echo $response->getText();
 ```
 
 ---
 
-## Core Features
+## Differentiators vs Existing PHP Libraries
 
-| Feature | Description | Documentation |
-| --- | --- | --- |
-| **Text Generation** | Simple unified API for chat completions | [Docs](docs/generators.md) |
-| **Streaming** | Stream chunked text responses in real-time | [Docs](docs/streaming.md) |
-| **Structured Output** | Generate JSON validated against strict schemas | [Docs](docs/structured-output.md) |
-| **Tool Calling** | Native tool & function calling with schema validation | [Docs](docs/tools.md) |
-| **Agent Loop** | Multi-step agent reasoning with tool execution | [Docs](docs/agents.md) |
-| **Conversation Memory** | Pluggable stores (In-Memory, Redis, Eloquent) | [Docs](docs/memory.md) |
-| **RAG Pipeline** | Loaders, Splitters, and Vector Search | [Docs](docs/rag.md) |
-| **Embeddings** | High-performance batch embedding generator | [Docs](docs/embeddings.md) |
-| **Observability** | Request logging, retries, and cost tracking | [Docs](docs/observability.md) |
+| Feature                        | openai-php | LLPhant | Prism | **LLMesh** |
+|-------------------------------|------------|---------|-------|--------------|
+| Multi-provider abstraction     | ❌         | ✅      | ✅    | ✅           |
+| Streaming (SSE-ready)          | ✅         | ⚠️      | ⚠️    | ✅           |
+| Structured object generation   | ❌         | ❌      | ⚠️    | ✅           |
+| Agent loop                     | ❌         | ✅      | ❌    | ✅           |
+| RAG pipeline                   | ❌         | ✅      | ❌    | ✅           |
+| PSR-18 HTTP client             | ❌         | ❌      | ❌    | ✅           |
+| Framework-agnostic core        | ✅         | ❌      | ✅    | ✅           |
+| Laravel first-class adapter    | ❌         | ❌      | ✅    | ✅           |
+| Cost tracking                  | ❌         | ❌      | ❌    | ✅           |
+| Pluggable memory backends      | ❌         | ⚠️      | ❌    | ✅           |
 
 ---
 
-## Documentation
+## Features
 
-- [Getting Started](docs/getting-started.md)
-- [Architecture Guide](docs/architecture.md)
-- [Observability & Middleware](docs/observability.md)
-- [Contributing Guide](CONTRIBUTING.md)
+- **[generateText](docs/generators.md)**: Unified API for text generation with full parameter customization.
+- **[streamText](docs/streaming.md)**: Real-time chunked text generation and Server-Sent Events (SSE) responses.
+- **[generateObject](docs/structured-output.md)**: Type-safe JSON output validated against custom schemas.
+- **[tools](docs/tools.md)**: Native function/tool calling with parameter mapping and validation.
+- **[agents](docs/agents.md)**: Autonomous multi-step orchestration loop with tool execution.
+- **[memory](docs/memory.md)**: Pluggable conversation memory stores (In-Memory, Redis, Database).
+- **[RAG](docs/rag.md)**: End-to-end ingestion pipeline (load, split, embed, store, retrieve).
+
+---
+
+## Contributing
+
+Please see the [CONTRIBUTING.md](CONTRIBUTING.md) guide for information on local setup, extending LLMesh with custom providers or vector stores, and the pull request checklist.
 
 ---
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE) for more information.
+The MIT License (MIT). Please see [LICENSE](LICENSE) for details.
