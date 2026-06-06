@@ -6,6 +6,13 @@ namespace LLMesh\Core\Config;
 
 /**
  * Global LLMesh configuration.
+ *
+ * Supported options (with their defaults):
+ * - default_provider (string|null): null
+ * - timeout (int): 30
+ * - retry_attempts (int): 3
+ * - retry_delay_ms (int): 500
+ * - log_requests (bool): false
  */
 final class LLMeshConfig
 {

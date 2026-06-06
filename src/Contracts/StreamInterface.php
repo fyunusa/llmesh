@@ -38,7 +38,7 @@ interface StreamInterface extends Iterator
      *
      * @return UsageInterface Token usage and cost information
      *
-     * @throws \LogicException If stream is not yet exhausted
+     * @throws \LLMesh\Core\Exceptions\StreamNotExhaustedException If stream is not yet exhausted
      */
     public function getUsage(): UsageInterface;
 }

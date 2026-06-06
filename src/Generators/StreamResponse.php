@@ -89,12 +89,12 @@ final class StreamResponse implements StreamInterface
      * Only available after the stream has been completely consumed via
      * `getChunks()`, `toText()`, `pipe()`, or iteration.
      *
-     * @throws \LogicException If the stream is not yet exhausted.
+     * @throws \LLMesh\Core\Exceptions\StreamNotExhaustedException If the stream is not yet exhausted.
      */
     public function getUsage(): UsageInterface
     {
         if (!$this->exhausted) {
-            throw new \LogicException(
+            throw new \LLMesh\Core\Exceptions\StreamNotExhaustedException(
                 'Cannot get usage before stream is exhausted. '
                 . 'Consume all chunks first (e.g. via toText() or a foreach loop).'
             );

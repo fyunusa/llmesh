@@ -37,7 +37,7 @@ class ProviderStream implements StreamInterface
     public function getUsage(): UsageInterface
     {
         if ($this->usage === null) {
-            throw new \LogicException('Usage not available.');
+            throw new \LLMesh\Core\Exceptions\StreamNotExhaustedException('Usage not available.');
         }
         return $this->usage;
     }

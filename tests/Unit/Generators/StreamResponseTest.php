@@ -75,7 +75,7 @@ final class StreamResponseTest extends TestCase
     // getUsage()
     // -------------------------------------------------------------------------
 
-    public function testGetUsageThrowsLogicExceptionBeforeStreamIsExhausted(): void
+    public function testGetUsageThrowsStreamNotExhaustedExceptionBeforeStreamIsExhausted(): void
     {
         $stream = $this->makeStream([
             ChunkDelta::text('first'),
@@ -83,7 +83,7 @@ final class StreamResponseTest extends TestCase
         ]);
 
         // Do NOT consume the stream — getUsage() must throw immediately.
-        $this->expectException(\LogicException::class);
+        $this->expectException(\LLMesh\Core\Exceptions\StreamNotExhaustedException::class);
         $this->expectExceptionMessage('Cannot get usage before stream is exhausted');
 
         $stream->getUsage();
