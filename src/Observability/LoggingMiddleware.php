@@ -33,16 +33,16 @@ final class LoggingMiddleware extends AbstractMiddleware
     private readonly RequestLogger $requestLogger;
 
     /**
-     * @param LoggerInterface $logger    PSR-3 logger instance
-     * @param string          $provider  Human-readable provider label (auto-derived if empty)
-     * @param string          $model     Model name to include in log entries (optional)
+     * @param LoggerInterface|RequestLogger $logger    PSR-3 logger instance or RequestLogger instance
+     * @param string                        $provider  Human-readable provider label (auto-derived if empty)
+     * @param string                        $model     Model name to include in log entries (optional)
      */
     public function __construct(
-        LoggerInterface $logger,
+        LoggerInterface|RequestLogger $logger,
         private readonly string $provider = '',
         private readonly string $model = '',
     ) {
-        $this->requestLogger = new RequestLogger($logger);
+        $this->requestLogger = $logger instanceof RequestLogger ? $logger : new RequestLogger($logger);
     }
 
     /**
@@ -144,49 +144,31 @@ final class LoggingMiddleware extends AbstractMiddleware
      */
     public function embedBatch(array $inputs, array $options = []): array
     {
-        $startMs = $this->nowMs();
+        $start = hrtime(true);
 
         try {
             $responses = $this->next->embedBatch($inputs, $options);
-            $duration  = $this->nowMs() - $startMs;
 
-            $inputTokens  = 0;
-            $outputTokens = 0;
-            $totalCost    = 0.0;
-            $anyCostNull  = false;
+            $durationMs = (int) ((hrtime(true) - $start) / 1_000_000);
 
-            foreach ($responses as $res) {
-                $u = $res->getUsage();
-                $inputTokens  += $u->getInputTokens();
-                $outputTokens += $u->getOutputTokens();
-
-                $cost = $u->getEstimatedCost();
-                if ($cost === null) {
-                    $anyCostNull = true;
-                } else {
-                    $totalCost += $cost;
-                }
-            }
-
-            $aggregatedUsage = new \LLMesh\Core\Generators\Usage(
-                inputTokens:   $inputTokens,
-                outputTokens:  $outputTokens,
-                estimatedCost: $anyCostNull ? null : $totalCost,
-            );
-
-            $this->requestLogger->logSuccess(
-                $this->resolveProvider(),
-                $this->resolveModel($options),
-                $aggregatedUsage,
-                $duration,
+            $this->requestLogger->logEmbedding(
+                provider: get_class($this->next),
+                model: $options['model'] ?? 'unknown',
+                inputCount: count($inputs),
+                durationMs: $durationMs,
+                status: 'success',
             );
 
             return $responses;
-        } catch (RateLimitException $e) {
-            $this->requestLogger->logRateLimit($this->resolveProvider(), $e);
-            throw $e;
         } catch (\Throwable $e) {
-            $this->requestLogger->logError($this->resolveProvider(), $e);
+            $durationMs = (int) ((hrtime(true) - $start) / 1_000_000);
+
+            $this->requestLogger->logError(
+                provider: get_class($this->next),
+                exception: $e,
+                model: $options['model'] ?? 'unknown',
+            );
+
             throw $e;
         }
     }

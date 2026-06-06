@@ -123,6 +123,31 @@ final class RequestLogger implements LoggerAwareInterface
     }
 
     /**
+     * Log a batch embedding call result.
+     *
+     * @param string $provider   Provider class name
+     * @param string $model      Embedding model used
+     * @param int    $inputCount Number of inputs embedded
+     * @param int    $durationMs Duration in milliseconds
+     * @param string $status     'success' or 'error'
+     */
+    public function logEmbedding(
+        string $provider,
+        string $model,
+        int $inputCount,
+        int $durationMs,
+        string $status,
+    ): void {
+        $this->safeLog('debug', 'llmesh.embedding', [
+            'provider'    => $provider,
+            'model'       => $model,
+            'input_count' => $inputCount,
+            'duration_ms' => $durationMs,
+            'status'      => $status,
+        ]);
+    }
+
+    /**
      * Build a structured context array suitable for a log entry.
      *
      * Useful when callers want to compose context manually before logging.

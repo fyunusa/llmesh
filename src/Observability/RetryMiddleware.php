@@ -37,7 +37,7 @@ class RetryMiddleware extends AbstractMiddleware
      */
     public function chat(array $messages, array $options = []): ResponseInterface
     {
-        return $this->execute(fn () => $this->next->chat($messages, $options));
+        return $this->executeWithRetry(fn () => $this->next->chat($messages, $options));
     }
 
     /**
@@ -45,7 +45,7 @@ class RetryMiddleware extends AbstractMiddleware
      */
     public function stream(array $messages, array $options = []): StreamInterface
     {
-        return $this->execute(fn () => $this->next->stream($messages, $options));
+        return $this->executeWithRetry(fn () => $this->next->stream($messages, $options));
     }
 
     /**
@@ -53,7 +53,15 @@ class RetryMiddleware extends AbstractMiddleware
      */
     public function embed(string|array $input, array $options = []): EmbeddingResponseInterface
     {
-        return $this->execute(fn () => $this->next->embed($input, $options));
+        return $this->executeWithRetry(fn () => $this->next->embed($input, $options));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function embedBatch(array $inputs, array $options = []): array
+    {
+        return $this->executeWithRetry(fn () => $this->next->embedBatch($inputs, $options));
     }
 
     /**
@@ -63,7 +71,7 @@ class RetryMiddleware extends AbstractMiddleware
      * @param callable(): T $callback
      * @return T
      */
-    private function execute(callable $callback): mixed
+    private function executeWithRetry(callable $callback): mixed
     {
         $attempt = 0;
         $lastException = null;

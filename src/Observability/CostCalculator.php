@@ -25,43 +25,52 @@ namespace LLMesh\Core\Observability;
 final class CostCalculator
 {
     /**
-     * Default pricing table: model → [input $/1M, output $/1M].
+     * Pricing table per model.
+     * Format: 'model-id' => [input_cost_per_1m_tokens, output_cost_per_1m_tokens]
+     * All prices are in USD.
      *
-     * @var array<string, array{0: float, 1: float}>
+     * Sources:
+     * - OpenAI:    https://openai.com/api/pricing
+     * - Anthropic: https://www.anthropic.com/pricing
+     *
+     * @var array<string, array{float, float}>
      */
     private static array $pricing = [
-        // OpenAI chat models
-        'gpt-4o'                    => [2.50,  10.00],
-        'gpt-4o-mini'               => [0.15,   0.60],
-        'gpt-4-turbo'               => [10.00, 30.00],
-        'gpt-4-turbo-preview'       => [10.00, 30.00],
-        'gpt-4'                     => [30.00, 60.00],
-        'gpt-3.5-turbo'             => [0.50,   1.50],
-        'gpt-3.5-turbo-0125'        => [0.50,   1.50],
+        // OpenAI Chat Models
+        // $2.50 per 1M input tokens, $10.00 per 1M output tokens
+        'gpt-4o'                  => [2.50,  10.00],
 
-        // OpenAI o-series
-        'o1'                        => [15.00, 60.00],
-        'o1-mini'                   => [3.00,  12.00],
-        'o3-mini'                   => [1.10,   4.40],
+        // $10.00 per 1M input tokens, $30.00 per 1M output tokens
+        'gpt-4-turbo'             => [10.00, 30.00],
 
-        // OpenAI embedding models
-        'text-embedding-3-small'    => [0.02,   0.00],
-        'text-embedding-3-large'    => [0.13,   0.00],
-        'text-embedding-ada-002'    => [0.10,   0.00],
+        // $0.50 per 1M input tokens, $1.50 per 1M output tokens
+        'gpt-3.5-turbo'           => [0.50,  1.50],
 
-        // Anthropic Claude models
-        'claude-opus-4-5'           => [15.00, 75.00],
-        'claude-sonnet-4-5'         => [3.00,  15.00],
-        'claude-haiku-4-5'          => [0.80,   4.00],
-        'claude-3-opus-20240229'    => [15.00, 75.00],
-        'claude-3-sonnet-20240229'  => [3.00,  15.00],
-        'claude-3-haiku-20240307'   => [0.25,   1.25],
+        // $15.00 per 1M input tokens, $60.00 per 1M output tokens
+        'o1'                      => [15.00, 60.00],
 
-        // Groq (free-tier pricing; may differ)
-        'llama3-8b-8192'            => [0.05,   0.08],
-        'llama3-70b-8192'           => [0.59,   0.79],
-        'mixtral-8x7b-32768'        => [0.27,   0.27],
-        'gemma-7b-it'               => [0.10,   0.10],
+        // $3.00 per 1M input tokens, $12.00 per 1M output tokens
+        'o1-mini'                 => [3.00,  12.00],
+
+        // Anthropic Claude Models
+        // $3.00 per 1M input tokens, $15.00 per 1M output tokens
+        'claude-sonnet-4-5'       => [3.00,  15.00],
+
+        // $15.00 per 1M input tokens, $75.00 per 1M output tokens
+        'claude-opus-4-5'         => [15.00, 75.00],
+
+        // $0.80 per 1M input tokens, $4.00 per 1M output tokens
+        'claude-haiku-3-5'        => [0.80,  4.00],
+
+        // OpenAI Embedding Models
+        // $0.02 per 1M input tokens, $0.00 per 1M output tokens (embeddings have no output cost)
+        'text-embedding-3-small'  => [0.02,  0.00],
+
+        // $0.13 per 1M input tokens, $0.00 per 1M output tokens
+        'text-embedding-3-large'  => [0.13,  0.00],
+
+        // $0.10 per 1M input tokens, $0.00 per 1M output tokens
+        'text-embedding-ada-002'  => [0.10,  0.00],
     ];
 
     // =========================================================================
@@ -69,13 +78,15 @@ final class CostCalculator
     // =========================================================================
 
     /**
-     * Calculate the estimated cost for a request.
+     * Calculate the estimated cost for a given model and token counts.
      *
-     * @param  string  $model        Canonical model name (e.g. 'gpt-4o')
-     * @param  int     $inputTokens  Number of prompt/input tokens
-     * @param  int     $outputTokens Number of completion/output tokens
+     * Formula: (inputTokens / 1_000_000 * inputCostPer1M) + (outputTokens / 1_000_000 * outputCostPer1M)
      *
-     * @return float|null Estimated cost in USD, or `null` if model is unknown
+     * @param string $model        The model identifier (e.g. 'gpt-4o', 'claude-sonnet-4-5')
+     * @param int    $inputTokens  Number of input/prompt tokens consumed
+     * @param int    $outputTokens Number of output/completion tokens generated
+     *
+     * @return float|null Estimated cost in USD, or null if the model is not in the pricing table
      */
     public static function calculate(string $model, int $inputTokens, int $outputTokens): ?float
     {

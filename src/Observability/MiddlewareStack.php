@@ -24,7 +24,7 @@ use LLMesh\Core\Contracts\ProviderInterface;
  * This produces the call order:
  *   `CostTracking → Retry → Logging → rawProvider`
  */
-final class MiddlewareStack
+final class MiddlewareStack implements ProviderInterface
 {
     private function __construct(
         private ProviderInterface $provider,
@@ -89,6 +89,11 @@ final class MiddlewareStack
     public function embed(string|array $input, array $options = []): \LLMesh\Core\Contracts\EmbeddingResponseInterface
     {
         return $this->provider->embed($input, $options);
+    }
+
+    public function embedBatch(array $inputs, array $options = []): array
+    {
+        return $this->provider->embedBatch($inputs, $options);
     }
 
     public function supports(string $capability): bool

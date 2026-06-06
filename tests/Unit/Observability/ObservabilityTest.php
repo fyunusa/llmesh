@@ -21,6 +21,7 @@ use LLMesh\Core\Observability\RetryMiddleware;
 use LLMesh\Core\Observability\UsageTracker;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Mockery;
 
 final class ObservabilityTest extends TestCase
 {
@@ -28,6 +29,12 @@ final class ObservabilityTest extends TestCase
     {
         parent::setUp();
         CostCalculator::resetPricing();
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        Mockery::close();
     }
 
     public function testCostCalculatorCalculatesCorrectly(): void
@@ -354,8 +361,7 @@ final class ObservabilityTest extends TestCase
         // middleware2 -> middleware1 -> provider
         $wrapped = MiddlewareStack::wrap($mockProvider)
             ->with($middleware1)
-            ->with($middleware2)
-            ->build();
+            ->with($middleware2);
 
         $this->assertInstanceOf(ProviderInterface::class, $wrapped);
 
@@ -369,5 +375,141 @@ final class ObservabilityTest extends TestCase
             'middleware1_after',
             'middleware2_after',
         ], $order);
+    }
+
+    // Test: CostCalculator pricing entries have correct values with documented rates
+    public function testCostCalculatorPricingEntriesAreCorrectlyDocumented(): void
+    {
+        // gpt-4o: $2.50/1M input, $10.00/1M output
+        // 1M input tokens = $2.50
+        $this->assertEqualsWithDelta(2.50, CostCalculator::calculate('gpt-4o', 1_000_000, 0), 0.001);
+
+        // 1M output tokens = $10.00
+        $this->assertEqualsWithDelta(10.00, CostCalculator::calculate('gpt-4o', 0, 1_000_000), 0.001);
+
+        // text-embedding-3-small: $0.02/1M input, $0.00 output
+        $this->assertEqualsWithDelta(0.02, CostCalculator::calculate('text-embedding-3-small', 1_000_000, 0), 0.001);
+        $this->assertEqualsWithDelta(0.00, CostCalculator::calculate('text-embedding-3-small', 0, 1_000_000), 0.001);
+    }
+
+    // Test: MiddlewareStack implements ProviderInterface
+    public function testMiddlewareStackImplementsProviderInterface(): void
+    {
+        $provider = Mockery::mock(ProviderInterface::class);
+        $stack = MiddlewareStack::wrap($provider);
+
+        $this->assertInstanceOf(ProviderInterface::class, $stack);
+    }
+
+    // Test: MiddlewareStack can be passed directly as ProviderInterface without calling build()
+    public function testMiddlewareStackCanBeUsedDirectlyAsProvider(): void
+    {
+        $mockResponse = Mockery::mock(ResponseInterface::class);
+
+        $provider = Mockery::mock(ProviderInterface::class);
+        $provider->shouldReceive('chat')
+            ->once()
+            ->andReturn($mockResponse);
+
+        $stack = MiddlewareStack::wrap($provider);
+
+        // Direct call without ->build()
+        $result = $stack->chat([['role' => 'user', 'content' => 'hello']], []);
+
+        $this->assertSame($mockResponse, $result);
+    }
+
+    // Test: embedBatch calls are logged by LoggingMiddleware
+    public function testLoggingMiddlewareLogsEmbedBatchCalls(): void
+    {
+        $mockLogger = Mockery::mock(LoggerInterface::class);
+        $mockLogger->shouldReceive('debug')
+            ->once()
+            ->with(
+                'llmesh.embedding',
+                Mockery::on(function (array $context) {
+                    return str_contains($context['provider'], 'ProviderInterface')
+                        && $context['model'] === 'gpt-4o'
+                        && $context['input_count'] === 3
+                        && isset($context['duration_ms'])
+                        && $context['status'] === 'success';
+                })
+            );
+
+        $mockResponse = Mockery::mock(EmbeddingResponseInterface::class);
+
+        $provider = Mockery::mock(ProviderInterface::class);
+        $provider->shouldReceive('embedBatch')
+            ->once()
+            ->andReturn([$mockResponse, $mockResponse, $mockResponse]);
+
+        $middleware = new LoggingMiddleware($mockLogger);
+        $middleware->setNext($provider);
+
+        $middleware->embedBatch(['a', 'b', 'c'], ['model' => 'gpt-4o']);
+
+        $this->assertTrue(true);
+    }
+
+    // Test: embedBatch calls are retried by RetryMiddleware on RateLimitException
+    public function testRetryMiddlewareRetriesEmbedBatchOnRateLimit(): void
+    {
+        $callCount = 0;
+
+        $provider = Mockery::mock(ProviderInterface::class);
+        $provider->shouldReceive('embedBatch')
+            ->times(3)
+            ->andReturnUsing(function () use (&$callCount) {
+                $callCount++;
+                if ($callCount < 3) {
+                    throw new RateLimitException('Rate limited', 'test', null);
+                }
+                return [Mockery::mock(EmbeddingResponseInterface::class)];
+            });
+
+        $middleware = new RetryMiddleware(maxAttempts: 3, baseDelayMs: 0);
+        $middleware->setNext($provider);
+
+        $results = $middleware->embedBatch(['input'], []);
+
+        $this->assertCount(1, $results);
+        $this->assertEquals(3, $callCount);
+    }
+
+    // Test: CostTrackingMiddleware records usage for each embedBatch response
+    public function testCostTrackingMiddlewareTracksEmbedBatchUsage(): void
+    {
+        $tracker = new UsageTracker();
+
+        $mockUsage1 = Mockery::mock(UsageInterface::class);
+        $mockUsage1->shouldReceive('getInputTokens')->andReturn(100);
+        $mockUsage1->shouldReceive('getOutputTokens')->andReturn(0);
+        $mockUsage1->shouldReceive('getTotalTokens')->andReturn(100);
+        $mockUsage1->shouldReceive('getEstimatedCost')->andReturn(0.002);
+
+        $mockUsage2 = Mockery::mock(UsageInterface::class);
+        $mockUsage2->shouldReceive('getInputTokens')->andReturn(200);
+        $mockUsage2->shouldReceive('getOutputTokens')->andReturn(0);
+        $mockUsage2->shouldReceive('getTotalTokens')->andReturn(200);
+        $mockUsage2->shouldReceive('getEstimatedCost')->andReturn(0.004);
+
+        $response1 = Mockery::mock(EmbeddingResponseInterface::class);
+        $response1->shouldReceive('getUsage')->andReturn($mockUsage1);
+
+        $response2 = Mockery::mock(EmbeddingResponseInterface::class);
+        $response2->shouldReceive('getUsage')->andReturn($mockUsage2);
+
+        $provider = Mockery::mock(ProviderInterface::class);
+        $provider->shouldReceive('embedBatch')
+            ->once()
+            ->andReturn([$response1, $response2]);
+
+        $middleware = new CostTrackingMiddleware($tracker);
+        $middleware->setNext($provider);
+
+        $middleware->embedBatch(['input 1', 'input 2'], []);
+
+        $this->assertEquals(300, $tracker->getTotalInputTokens());
+        $this->assertEqualsWithDelta(0.006, $tracker->getTotalCost(), 0.0001);
     }
 }

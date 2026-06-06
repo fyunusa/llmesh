@@ -53,6 +53,22 @@ class CostTrackingMiddleware extends AbstractMiddleware
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function embedBatch(array $inputs, array $options = []): array
+    {
+        $responses = $this->next->embedBatch($inputs, $options);
+
+        foreach ($responses as $response) {
+            if ($response instanceof EmbeddingResponseInterface) {
+                $this->tracker->record($response->getUsage());
+            }
+        }
+
+        return $responses;
+    }
+
+    /**
      * Get the underlying usage tracker.
      */
     public function getTracker(): UsageTracker
