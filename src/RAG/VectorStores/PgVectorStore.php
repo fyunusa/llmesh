@@ -40,9 +40,9 @@ final class PgVectorStore implements VectorStoreInterface
      * @param int    $dimensions Expected vector dimensions (required for `createTable()`)
      */
     public function __construct(
-        private readonly \PDO   $pdo,
-        private readonly string $table      = 'llmesh_vectors',
-        private readonly int    $dimensions = 1536,
+        private readonly \PDO $pdo,
+        private readonly string $table = 'llmesh_vectors',
+        private readonly int $dimensions = 1536,
     ) {
         $this->checkPgvectorExtension();
     }
@@ -145,9 +145,9 @@ final class PgVectorStore implements VectorStoreInterface
 
         try {
             $stmt = $this->pdo->prepare($sql);
-            $stmt->bindValue(':query_vector',  $vectorLit);
+            $stmt->bindValue(':query_vector', $vectorLit);
             $stmt->bindValue(':query_vector2', $vectorLit);
-            $stmt->bindValue(':top_k',         $topK, \PDO::PARAM_INT);
+            $stmt->bindValue(':top_k', $topK, \PDO::PARAM_INT);
 
             foreach ($filterParams as $key => $value) {
                 $stmt->bindValue($key, $value);

@@ -38,7 +38,7 @@ final class RecursiveCharacterSplitter implements SplitterInterface
      */
     public function __construct(
         private readonly int $chunkSize = 512,
-        private readonly int $overlap   = 50,
+        private readonly int $overlap = 50,
     ) {
     }
 

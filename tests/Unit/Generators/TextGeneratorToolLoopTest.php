@@ -153,7 +153,10 @@ final class TextGeneratorToolLoopTest extends TestCase
 
         $provider = $this->createMock(ProviderInterface::class);
         $provider->method('chat')
-            ->willReturnCallback(function (array $messages, array $opts) use (
+            ->willReturnCallback(function (
+                array $messages,
+                array $opts
+            ) use (
                 &$capturedMessages,
                 $step1Raw,
                 $step2Raw,

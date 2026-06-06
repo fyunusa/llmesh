@@ -194,8 +194,8 @@ final class LLMesh
      */
     public static function embed(
         ProviderInterface $provider,
-        string            $input,
-        array             $options = [],
+        string $input,
+        array $options = [],
     ): EmbeddingResponse {
         $generator = new EmbeddingGenerator();
         return $generator->embed($provider, $input, $options);
@@ -213,8 +213,8 @@ final class LLMesh
      */
     public static function embedBatch(
         ProviderInterface $provider,
-        array             $inputs,
-        array             $options = [],
+        array $inputs,
+        array $options = [],
     ): array {
         $generator = new EmbeddingGenerator();
         return $generator->embedBatch($provider, $inputs, $options);

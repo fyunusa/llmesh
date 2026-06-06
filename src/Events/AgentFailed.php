@@ -20,7 +20,7 @@ final readonly class AgentFailed
      */
     public function __construct(
         public \Throwable $exception,
-        public array      $stepsComplete,
+        public array $stepsComplete,
     ) {
     }
 }

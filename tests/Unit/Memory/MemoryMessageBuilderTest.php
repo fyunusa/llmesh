@@ -31,7 +31,7 @@ final class MemoryMessageBuilderTest extends TestCase
         $result = $this->builder->build('session', 'Hello!', $store);
 
         $this->assertCount(1, $result);
-        $this->assertSame('user',   $result[0]->role->value);
+        $this->assertSame('user', $result[0]->role->value);
         $this->assertSame('Hello!', $result[0]->content);
     }
 
@@ -53,10 +53,10 @@ final class MemoryMessageBuilderTest extends TestCase
 
         // history (2) + new user message (1) = 3
         $this->assertCount(3, $result);
-        $this->assertSame('First',     $result[0]->content);
-        $this->assertSame('Response',  $result[1]->content);
+        $this->assertSame('First', $result[0]->content);
+        $this->assertSame('Response', $result[1]->content);
         $this->assertSame('Follow-up', $result[2]->content);
-        $this->assertSame('user',      $result[2]->role->value);
+        $this->assertSame('user', $result[2]->role->value);
     }
 
     public function testBuildPersistsNewUserMessageInStore(): void
@@ -67,7 +67,7 @@ final class MemoryMessageBuilderTest extends TestCase
         // After build(), the user message must be in the store for future calls
         $stored = $store->get('session');
         $this->assertCount(1, $stored);
-        $this->assertSame('user',   $stored[0]['role']);
+        $this->assertSame('user', $stored[0]['role']);
         $this->assertSame('Hello!', $stored[0]['content']);
     }
 
@@ -97,8 +97,8 @@ final class MemoryMessageBuilderTest extends TestCase
 
         $stored = $store->get('session');
         $this->assertCount(1, $stored);
-        $this->assertSame('assistant',          $stored[0]['role']);
-        $this->assertSame('I am an assistant',  $stored[0]['content']);
+        $this->assertSame('assistant', $stored[0]['role']);
+        $this->assertSame('I am an assistant', $stored[0]['content']);
     }
 
     public function testSaveCallsStoreAppendWithCorrectArguments(): void
@@ -117,8 +117,8 @@ final class MemoryMessageBuilderTest extends TestCase
 
         $this->builder->save('sess-abc', 'Reply text', $mockStore);
 
-        $this->assertSame('sess-abc',   $capturedSessionId);
-        $this->assertSame('assistant',  $capturedMessage['role']);
+        $this->assertSame('sess-abc', $capturedSessionId);
+        $this->assertSame('assistant', $capturedMessage['role']);
         $this->assertSame('Reply text', $capturedMessage['content']);
     }
 
@@ -140,7 +140,7 @@ final class MemoryMessageBuilderTest extends TestCase
         // Messages at the start of Turn 2: [Q1, A1, Q2]
         $this->assertCount(3, $messages);
         $this->assertSame('Question one?', $messages[0]->content);
-        $this->assertSame('Answer one.',   $messages[1]->content);
+        $this->assertSame('Answer one.', $messages[1]->content);
         $this->assertSame('Question two?', $messages[2]->content);
     }
 }

@@ -46,12 +46,12 @@ use LLMesh\Core\RAG\Splitters\SplitterInterface;
 final class Pipeline
 {
     private function __construct(
-        private readonly ?LoaderInterface    $loader,
-        private readonly ?SplitterInterface  $splitter,
-        private readonly ?ProviderInterface  $embedProvider,
+        private readonly ?LoaderInterface $loader,
+        private readonly ?SplitterInterface $splitter,
+        private readonly ?ProviderInterface $embedProvider,
         private readonly ?VectorStoreInterface $store,
-        private readonly array              $embedOptions,
-        private readonly ?\Closure          $onProgress,
+        private readonly array $embedOptions,
+        private readonly ?\Closure $onProgress,
     ) {
     }
 
@@ -244,10 +244,18 @@ final class Pipeline
     {
         $missing = [];
 
-        if ($this->loader === null)        $missing[] = 'loader (call ->load($loader))';
-        if ($this->splitter === null)      $missing[] = 'splitter (call ->split($splitter))';
-        if ($this->embedProvider === null) $missing[] = 'embed provider (call ->embed($provider))';
-        if ($this->store === null)         $missing[] = 'vector store (call ->store($store))';
+        if ($this->loader === null) {
+            $missing[] = 'loader (call ->load($loader))';
+        }
+        if ($this->splitter === null) {
+            $missing[] = 'splitter (call ->split($splitter))';
+        }
+        if ($this->embedProvider === null) {
+            $missing[] = 'embed provider (call ->embed($provider))';
+        }
+        if ($this->store === null) {
+            $missing[] = 'vector store (call ->store($store))';
+        }
 
         if (!empty($missing)) {
             throw new \LogicException(

@@ -99,7 +99,7 @@ final class AgentTest extends TestCase
         $result = $agent->run('Hello');
 
         $this->assertSame('Final answer', $result->finalText);
-        $this->assertSame(1,              $result->totalSteps);
+        $this->assertSame(1, $result->totalSteps);
         $this->assertFalse($result->stoppedEarly);
         $this->assertCount(1, $result->steps);
     }
@@ -204,9 +204,9 @@ final class AgentTest extends TestCase
         $agent  = Agent::make($provider, 'Math', [$this->echoTool('calc')]);
         $result = $agent->run('Calculate something');
 
-        $this->assertSame(25,  $result->usage->getInputTokens());   // 15+10
-        $this->assertSame(25,  $result->usage->getOutputTokens());  // 5+20
-        $this->assertSame(50,  $result->usage->getTotalTokens());   // 25+25
+        $this->assertSame(25, $result->usage->getInputTokens());   // 15+10
+        $this->assertSame(25, $result->usage->getOutputTokens());  // 5+20
+        $this->assertSame(50, $result->usage->getTotalTokens());   // 25+25
     }
 
     // -------------------------------------------------------------------------
@@ -270,9 +270,9 @@ final class AgentTest extends TestCase
 
         $classes = array_map('get_class', $dispatchedEvents);
 
-        $this->assertContains(AgentStarted::class,       $classes);
+        $this->assertContains(AgentStarted::class, $classes);
         $this->assertContains(AgentStepCompleted::class, $classes);
-        $this->assertContains(AgentFinished::class,      $classes);
+        $this->assertContains(AgentFinished::class, $classes);
     }
 
     // -------------------------------------------------------------------------
@@ -307,7 +307,7 @@ final class AgentTest extends TestCase
 
         $this->assertCount(1, $toolCalledEvents);
         $this->assertSame('my_tool', $toolCalledEvents[0]->toolCall->name);
-        $this->assertSame(1,         $toolCalledEvents[0]->stepNumber);
+        $this->assertSame(1, $toolCalledEvents[0]->stepNumber);
     }
 
     // -------------------------------------------------------------------------
@@ -325,11 +325,11 @@ final class AgentTest extends TestCase
         $array = $result->toArray();
 
         $this->assertIsArray($array);
-        $this->assertArrayHasKey('final_text',    $array);
-        $this->assertArrayHasKey('total_steps',   $array);
+        $this->assertArrayHasKey('final_text', $array);
+        $this->assertArrayHasKey('total_steps', $array);
         $this->assertArrayHasKey('stopped_early', $array);
-        $this->assertArrayHasKey('usage',         $array);
-        $this->assertArrayHasKey('steps',         $array);
+        $this->assertArrayHasKey('usage', $array);
+        $this->assertArrayHasKey('steps', $array);
 
         // Must be JSON-encodable without errors
         $json = json_encode($array, JSON_THROW_ON_ERROR);
@@ -355,10 +355,10 @@ final class AgentTest extends TestCase
         $history = $store->get('sess-001');
         // Should have: user message + assistant reply
         $this->assertCount(2, $history);
-        $this->assertSame('user',      $history[0]['role']);
-        $this->assertSame('Hello',     $history[0]['content']);
+        $this->assertSame('user', $history[0]['role']);
+        $this->assertSame('Hello', $history[0]['content']);
         $this->assertSame('assistant', $history[1]['role']);
-        $this->assertSame('Hi there',  $history[1]['content']);
+        $this->assertSame('Hi there', $history[1]['content']);
     }
 
     // -------------------------------------------------------------------------
@@ -378,7 +378,7 @@ final class AgentTest extends TestCase
         $agent  = Agent::make($provider, 'Test');
         $result = $agent->run('Go');
 
-        $this->assertSame(1,     $result->getStepCount());
+        $this->assertSame(1, $result->getStepCount());
         $this->assertEqualsWithDelta(0.005, $result->getTotalCost(), 0.0001);
     }
 

@@ -42,7 +42,8 @@ final class PipelineTest extends TestCase
         $p5 = $p4->store($store);
         $this->assertNotSame($p4, $p5);
 
-        $callback = function (int $current, int $total): void {};
+        $callback = function (int $current, int $total): void {
+        };
         $p6 = $p5->onProgress($callback);
         $this->assertNotSame($p5, $p6);
     }
@@ -214,5 +215,32 @@ final class PipelineTest extends TestCase
     {
         $pipeline = LLMesh::pipeline();
         $this->assertInstanceOf(Pipeline::class, $pipeline);
+    }
+
+    public function testIntegrationWithInMemoryVectorStoreAndMockedEmbeddingProvider(): void
+    {
+        $loader = new \LLMesh\Core\RAG\Loaders\ArrayLoader(['Integration Test text content']);
+        $splitter = new \LLMesh\Core\RAG\Splitters\RecursiveCharacterSplitter(50, 10);
+
+        $provider = $this->createMock(ProviderInterface::class);
+        $response = new EmbeddingResponse([0.5, 0.5], 2, new Usage(5, 0), 'test-model');
+        $provider->expects($this->once())
+            ->method('embed')
+            ->willReturn($response);
+
+        $store = new \LLMesh\Core\RAG\VectorStores\InMemoryVectorStore();
+
+        $pipeline = Pipeline::make()
+            ->load($loader)
+            ->split($splitter)
+            ->embed($provider)
+            ->store($store);
+
+        $result = $pipeline->run();
+
+        $this->assertSame(1, $result->documentsLoaded);
+        $this->assertSame(1, $result->chunksCreated);
+        $this->assertSame(1, $result->chunksStored);
+        $this->assertSame(1, $store->count());
     }
 }

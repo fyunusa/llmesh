@@ -29,9 +29,9 @@ final class RedisStore implements MemoryStoreInterface
      * @param int                   $ttl    Time-to-live in seconds; refreshed on every append (default 3600)
      */
     public function __construct(
-        private readonly mixed  $redis,
+        private readonly mixed $redis,
         private readonly string $prefix = 'llmesh:memory:',
-        private readonly int    $ttl    = 3600,
+        private readonly int $ttl = 3600,
     ) {
     }
 

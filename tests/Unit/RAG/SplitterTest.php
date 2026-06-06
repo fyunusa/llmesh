@@ -51,7 +51,7 @@ final class SplitterTest extends TestCase
 
         foreach ($chunks as $index => $chunk) {
             $this->assertSame($doc->id, $chunk->metadata['parent_id']);
-            $this->assertSame($index,   $chunk->metadata['chunk_index']);
+            $this->assertSame($index, $chunk->metadata['chunk_index']);
         }
     }
 
@@ -70,7 +70,9 @@ final class SplitterTest extends TestCase
         // With overlap the second chunk should contain some 'A' characters from para1
         if (count($chunks) >= 2) {
             $chunk2Content = $chunks[1]->content;
-            $this->assertStringContainsString('A', $chunk2Content,
+            $this->assertStringContainsString(
+                'A',
+                $chunk2Content,
                 'Overlap should carry trailing chars of previous chunk into next chunk',
             );
         }
@@ -123,7 +125,7 @@ final class SplitterTest extends TestCase
 
         foreach ($chunks as $index => $chunk) {
             $this->assertSame($doc->id, $chunk->metadata['parent_id']);
-            $this->assertSame($index,   $chunk->metadata['chunk_index']);
+            $this->assertSame($index, $chunk->metadata['chunk_index']);
             $this->assertArrayHasKey('sentence_count', $chunk->metadata);
         }
     }

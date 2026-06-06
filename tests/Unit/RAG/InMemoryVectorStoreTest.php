@@ -51,15 +51,15 @@ final class InMemoryVectorStoreTest extends TestCase
 
     public function testQueryResultsAreOrderedBySimilarityDescending(): void
     {
-        $this->store->upsert('close',  [1.0, 0.01], []);
-        $this->store->upsert('medium', [0.8, 0.6],  []);
-        $this->store->upsert('far',    [0.0, 1.0],  []);
+        $this->store->upsert('close', [1.0, 0.01], []);
+        $this->store->upsert('medium', [0.8, 0.6], []);
+        $this->store->upsert('far', [0.0, 1.0], []);
 
         $results = $this->store->query([1.0, 0.0], topK: 3);
 
-        $this->assertSame('close',  $results[0]['id']);
+        $this->assertSame('close', $results[0]['id']);
         $this->assertSame('medium', $results[1]['id']);
-        $this->assertSame('far',    $results[2]['id']);
+        $this->assertSame('far', $results[2]['id']);
     }
 
     public function testQueryOnEmptyStoreReturnsEmptyArray(): void
@@ -89,7 +89,7 @@ final class InMemoryVectorStoreTest extends TestCase
     public function testDeleteRemovesVector(): void
     {
         $this->store->upsert('keep', [1.0, 0.0], []);
-        $this->store->upsert('del',  [1.0, 0.0], []);
+        $this->store->upsert('del', [1.0, 0.0], []);
 
         $this->store->delete('del');
 
@@ -126,8 +126,8 @@ final class InMemoryVectorStoreTest extends TestCase
 
         $results = $this->store->query([1.0, 0.0], topK: 1);
 
-        $this->assertArrayHasKey('score',    $results[0]);
-        $this->assertArrayHasKey('id',       $results[0]);
+        $this->assertArrayHasKey('score', $results[0]);
+        $this->assertArrayHasKey('id', $results[0]);
         $this->assertArrayHasKey('metadata', $results[0]);
         $this->assertEqualsWithDelta(1.0, $results[0]['score'], 1e-6);
     }

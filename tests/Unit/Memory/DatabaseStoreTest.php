@@ -45,7 +45,7 @@ final class DatabaseStoreTest extends TestCase
 
         $result = $this->store->get('sess-1');
         $this->assertCount(1, $result);
-        $this->assertSame('user',        $result[0]['role']);
+        $this->assertSame('user', $result[0]['role']);
         $this->assertSame('Hello world', $result[0]['content']);
         $this->assertNull($result[0]['toolCallId']);
         $this->assertNull($result[0]['toolName']);
@@ -80,7 +80,7 @@ final class DatabaseStoreTest extends TestCase
 
         $result = $this->store->get('sess-1');
         $this->assertCount(1, $result);
-        $this->assertSame('call-abc',    $result[0]['toolCallId']);
+        $this->assertSame('call-abc', $result[0]['toolCallId']);
         $this->assertSame('get_weather', $result[0]['toolName']);
     }
 

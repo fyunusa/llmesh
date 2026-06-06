@@ -69,6 +69,60 @@ This project follows [PSR-12](https://www.php-fig.org/psr/psr-12/) coding standa
 - Prefer composition over inheritance
 - Follow PSR-4 autoloading conventions
 
+## Extending LLMesh
+
+### How to Add a Provider
+
+To add a new LLM provider integration, follow these steps:
+
+1. **Implement `ProviderInterface`**:
+   Create a new class implementing `LLMesh\Core\Contracts\ProviderInterface`.
+   ```php
+   use LLMesh\Core\Contracts\ProviderInterface;
+   use LLMesh\Core\Contracts\ResponseInterface;
+   use LLMesh\Core\Contracts\StreamInterface;
+   use LLMesh\Core\Contracts\EmbeddingResponseInterface;
+
+   class CustomProvider implements ProviderInterface {
+       public function chat(array $messages, array $options = []): ResponseInterface { ... }
+       public function stream(array $messages, array $options = []): StreamInterface { ... }
+       public function embed(string|array $input, array $options = []): EmbeddingResponseInterface { ... }
+       public function supports(string $capability): bool { ... }
+   }
+   ```
+2. **Implement DTOs**:
+   - Return an implementation of `ResponseInterface` (typically `TextResponse` or `ObjectResponse`) from `chat()`.
+   - Return a `StreamResponse` wrapping your chunk generator from `stream()`.
+   - Return an implementation of `EmbeddingResponseInterface` (typically `EmbeddingResponse`) from `embed()`.
+3. **Handle Errors**:
+   - Throw `LLMesh\Core\Exceptions\ConnectionException` for connection/network failures.
+   - Throw `LLMesh\Core\Exceptions\RateLimitException` for 429 rate limit errors (including `retryAfter` if known).
+   - Throw `LLMesh\Core\Exceptions\ValidationException` for invalid request payloads.
+4. **Register / Ship as Package**:
+   Package the provider (e.g. `llmesh/custom`) or use it directly in your application.
+
+### How to Add a Vector Store
+
+To integrate a new vector database store, follow these steps:
+
+1. **Implement `VectorStoreInterface`**:
+   Create a class implementing `LLMesh\Core\Contracts\VectorStoreInterface`.
+   ```php
+   use LLMesh\Core\Contracts\VectorStoreInterface;
+   use LLMesh\Core\RAG\Document;
+
+   class CustomVectorStore implements VectorStoreInterface {
+       public function upsert(array $documents): void { ... }
+       public function query(array $embedding, int $topK = 5, array $filter = []): array { ... }
+       public function delete(array $ids): void { ... }
+   }
+   ```
+2. **Handle Similarity Metric**:
+   - Inside `query()`, ensure distance/similarity calculation (e.g. Cosine Similarity) matches your backend capability.
+   - Return matching documents sorted by similarity (highest score first).
+3. **Write Tests**:
+   Create integration tests using SQLite in-memory or mock queries to ensure document structures are preserved.
+
 ## Issues
 
 When reporting issues, please include:
@@ -78,3 +132,4 @@ When reporting issues, please include:
 - PHP version and relevant dependency versions
 
 Thank you for contributing to LLMesh!
+

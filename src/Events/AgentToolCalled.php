@@ -21,9 +21,9 @@ final readonly class AgentToolCalled
      * @param int        $stepNumber The 1-based step number this call belongs to
      */
     public function __construct(
-        public ToolCall   $toolCall,
+        public ToolCall $toolCall,
         public ToolResult $toolResult,
-        public int        $stepNumber,
+        public int $stepNumber,
     ) {
     }
 }

@@ -34,3 +34,8 @@ Thumbs.db
 
 # Testing
 .pest/
+
+# Prompts
+llmesh-*-prompts.md
+llmesh-review-prompts.md
+

@@ -56,14 +56,14 @@ final class Agent
      * @param \Closure|null                  $onStep           Callback invoked after each step with `AgentStep`
      */
     private function __construct(
-        private readonly ProviderInterface             $provider,
-        private readonly string                        $systemPrompt,
-        private readonly array                         $tools,
-        private readonly int                           $maxSteps,
-        private readonly ?MemoryStoreInterface         $memory,
-        private readonly ?string                       $sessionId,
-        private readonly ?EventDispatcherInterface     $eventDispatcher,
-        private readonly ?\Closure                     $onStep,
+        private readonly ProviderInterface $provider,
+        private readonly string $systemPrompt,
+        private readonly array $tools,
+        private readonly int $maxSteps,
+        private readonly ?MemoryStoreInterface $memory,
+        private readonly ?string $sessionId,
+        private readonly ?EventDispatcherInterface $eventDispatcher,
+        private readonly ?\Closure $onStep,
     ) {
     }
 
@@ -81,9 +81,9 @@ final class Agent
      */
     public static function make(
         ProviderInterface $provider,
-        string            $systemPrompt,
-        array             $tools    = [],
-        int               $maxSteps = 10,
+        string $systemPrompt,
+        array $tools = [],
+        int $maxSteps = 10,
     ): self {
         return new self(
             provider:        $provider,
@@ -293,7 +293,6 @@ final class Agent
 
             $this->dispatch(new AgentFinished($result));
             return $result;
-
         } catch (\Throwable $e) {
             $this->dispatch(new AgentFailed(
                 exception:     $e,
@@ -358,10 +357,10 @@ final class Agent
      * @return Message[]
      */
     private function appendToolRound(
-        array                                           $messages,
-        \LLMesh\Core\Contracts\ResponseInterface        $response,
-        array                                           $toolCalls,
-        array                                           $toolResults,
+        array $messages,
+        \LLMesh\Core\Contracts\ResponseInterface $response,
+        array $toolCalls,
+        array $toolResults,
     ): array {
         // Encode the tool-call list as the assistant turn content
         $assistantContent = $response->getText() !== ''

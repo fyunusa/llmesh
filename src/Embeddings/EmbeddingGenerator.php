@@ -29,8 +29,8 @@ final class EmbeddingGenerator
      */
     public function embed(
         ProviderInterface $provider,
-        string            $input,
-        array             $options = [],
+        string $input,
+        array $options = [],
     ): EmbeddingResponse {
         $raw = $provider->embed($input, $options);
 
@@ -68,8 +68,8 @@ final class EmbeddingGenerator
      */
     public function embedBatch(
         ProviderInterface $provider,
-        array             $inputs,
-        array             $options = [],
+        array $inputs,
+        array $options = [],
     ): array {
         if (empty($inputs)) {
             return [];
@@ -113,8 +113,8 @@ final class EmbeddingGenerator
      */
     private function batchViaProvider(
         ProviderInterface $provider,
-        array             $inputs,
-        array             $options,
+        array $inputs,
+        array $options,
     ): array {
         // Build results sequentially to guarantee index ordering.
         // Each input gets its own embed() call so every index maps 1-to-1.
@@ -133,8 +133,8 @@ final class EmbeddingGenerator
      */
     private function batchSequential(
         ProviderInterface $provider,
-        array             $inputs,
-        array             $options,
+        array $inputs,
+        array $options,
     ): array {
         $results = [];
 

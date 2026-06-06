@@ -24,10 +24,10 @@ final readonly class AgentResult
      * @param UsageInterface $usage        Aggregated token usage across all steps
      */
     public function __construct(
-        public string         $finalText,
-        public array          $steps,
-        public int            $totalSteps,
-        public bool           $stoppedEarly,
+        public string $finalText,
+        public array $steps,
+        public int $totalSteps,
+        public bool $stoppedEarly,
         public UsageInterface $usage,
     ) {
     }
@@ -99,8 +99,8 @@ final readonly class AgentResult
      */
     public static function fromSteps(
         string $finalText,
-        array  $steps,
-        bool   $stoppedEarly,
+        array $steps,
+        bool $stoppedEarly,
     ): self {
         $inputTokens  = 0;
         $outputTokens = 0;

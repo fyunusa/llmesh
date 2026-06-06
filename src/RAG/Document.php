@@ -19,10 +19,10 @@ final readonly class Document
      * @param float[]|null $embedding Embedding vector, set after the embed step
      */
     public function __construct(
-        public string  $id,
-        public string  $content,
-        public array   $metadata  = [],
-        public ?array  $embedding = null,
+        public string $id,
+        public string $content,
+        public array $metadata = [],
+        public ?array $embedding = null,
     ) {
     }
 

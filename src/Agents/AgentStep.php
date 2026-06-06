@@ -26,12 +26,12 @@ final readonly class AgentStep
      * @param int               $durationMs  Wall-clock time for the provider call, in milliseconds
      */
     public function __construct(
-        public int               $stepNumber,
-        public array             $input,
+        public int $stepNumber,
+        public array $input,
         public ResponseInterface $output,
-        public array             $toolCalls   = [],
-        public array             $toolResults = [],
-        public int               $durationMs  = 0,
+        public array $toolCalls = [],
+        public array $toolResults = [],
+        public int $durationMs = 0,
     ) {
     }
 

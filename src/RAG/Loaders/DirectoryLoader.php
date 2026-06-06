@@ -22,8 +22,8 @@ final class DirectoryLoader implements LoaderInterface
      */
     public function __construct(
         private readonly string $path,
-        private readonly array  $extensions = ['txt', 'md'],
-        private readonly bool   $recursive  = false,
+        private readonly array $extensions = ['txt', 'md'],
+        private readonly bool $recursive = false,
     ) {
     }
 

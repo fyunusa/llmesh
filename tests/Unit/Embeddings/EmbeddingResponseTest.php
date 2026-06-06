@@ -122,10 +122,10 @@ final class EmbeddingResponseTest extends TestCase
         $response = $this->makeResponse([1.0, 2.0]);
         $full     = $response->toFullArray();
 
-        $this->assertArrayHasKey('embedding',  $full);
+        $this->assertArrayHasKey('embedding', $full);
         $this->assertArrayHasKey('dimensions', $full);
-        $this->assertArrayHasKey('usage',      $full);
-        $this->assertArrayHasKey('model',      $full);
+        $this->assertArrayHasKey('usage', $full);
+        $this->assertArrayHasKey('model', $full);
         $this->assertSame(2, $full['dimensions']);
     }
 

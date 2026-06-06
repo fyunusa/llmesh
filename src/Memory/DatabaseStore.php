@@ -36,7 +36,7 @@ final class DatabaseStore implements MemoryStoreInterface
      * @param string $table Table name (default 'llmesh_memory')
      */
     public function __construct(
-        private readonly \PDO   $pdo,
+        private readonly \PDO $pdo,
         private readonly string $table = 'llmesh_memory',
     ) {
     }

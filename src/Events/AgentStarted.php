@@ -19,9 +19,9 @@ final readonly class AgentStarted
      */
     public function __construct(
         public ProviderInterface $provider,
-        public string            $systemPrompt,
-        public array             $toolNames,
-        public int               $maxSteps,
+        public string $systemPrompt,
+        public array $toolNames,
+        public int $maxSteps,
     ) {
     }
 }

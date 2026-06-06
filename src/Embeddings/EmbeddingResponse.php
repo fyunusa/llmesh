@@ -22,10 +22,10 @@ final readonly class EmbeddingResponse implements EmbeddingResponseInterface
      * @param string         $model      Model that produced the embedding
      */
     public function __construct(
-        public array          $embedding,
-        public int            $dimensions,
+        public array $embedding,
+        public int $dimensions,
         public UsageInterface $usage,
-        public string         $model,
+        public string $model,
     ) {
     }
 
