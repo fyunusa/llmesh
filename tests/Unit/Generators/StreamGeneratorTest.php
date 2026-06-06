@@ -103,7 +103,7 @@ final class StreamGeneratorTest extends TestCase
                     self::assertSame('test prompt', $messages[0]->content);
                     return true;
                 }),
-                $this->isArray(),
+                $this->callback('is_array'),
             )
             ->willReturn($mockStream);
 
@@ -121,7 +121,7 @@ final class StreamGeneratorTest extends TestCase
             ->expects($this->once())
             ->method('stream')
             ->with(
-                $this->isArray(),
+                $this->callback('is_array'),
                 $this->callback(function (array $opts): bool {
                     self::assertSame(0.5, $opts['temperature']);
                     self::assertSame(256, $opts['max_tokens']);
