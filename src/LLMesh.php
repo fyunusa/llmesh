@@ -14,6 +14,8 @@ use LLMesh\Core\Events\StreamChunkReceived;
 use LLMesh\Core\Events\StreamCompleted;
 use LLMesh\Core\Events\StreamFailed;
 use LLMesh\Core\Events\StreamStarted;
+use LLMesh\Core\Embeddings\EmbeddingGenerator;
+use LLMesh\Core\Embeddings\EmbeddingResponse;
 use LLMesh\Core\Generators\GenerateObjectOptions;
 use LLMesh\Core\Generators\GenerateTextOptions;
 use LLMesh\Core\Generators\ObjectGenerator;
@@ -179,6 +181,42 @@ final class LLMesh
         })();
 
         return new StreamResponse($instrumentedGenerator);
+    }
+
+    /**
+     * Embed a single text input and return the embedding vector.
+     *
+     * @param ProviderInterface $provider The LLM provider
+     * @param string            $input    Text to embed
+     * @param array             $options  Provider-specific options
+     * @return EmbeddingResponse
+     */
+    public static function embed(
+        ProviderInterface $provider,
+        string            $input,
+        array             $options = [],
+    ): EmbeddingResponse {
+        $generator = new EmbeddingGenerator();
+        return $generator->embed($provider, $input, $options);
+    }
+
+    /**
+     * Embed multiple text inputs and return one EmbeddingResponse per input.
+     *
+     * The returned array is indexed in the same order as `$inputs`.
+     *
+     * @param ProviderInterface $provider The LLM provider
+     * @param string[]          $inputs   Texts to embed
+     * @param array             $options  Provider-specific options
+     * @return EmbeddingResponse[]
+     */
+    public static function embedBatch(
+        ProviderInterface $provider,
+        array             $inputs,
+        array             $options = [],
+    ): array {
+        $generator = new EmbeddingGenerator();
+        return $generator->embedBatch($provider, $inputs, $options);
     }
 
     /**
