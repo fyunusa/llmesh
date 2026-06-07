@@ -10,5 +10,6 @@ final class ExtractionRetrying
         public readonly string $modelClass,
         public readonly int $attempt,
         public readonly string $errorMessage,
-    ) {}
+    ) {
+    }
 }

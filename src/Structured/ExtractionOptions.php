@@ -15,7 +15,8 @@ final class ExtractionOptions
         public readonly int $maxRetries,
         public readonly ?float $temperature,
         public readonly ?int $maxTokens,
-    ) {}
+    ) {
+    }
 
     public static function make(): self
     {

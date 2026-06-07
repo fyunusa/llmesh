@@ -10,5 +10,6 @@ final class ExtractionFailed
         public readonly string $modelClass,
         public readonly int $totalAttempts,
         public readonly string $lastError,
-    ) {}
+    ) {
+    }
 }

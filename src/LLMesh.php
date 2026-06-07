@@ -30,7 +30,6 @@ use LLMesh\Core\Structured\LLMModel;
 use LLMesh\Core\Structured\ExtractionOptions;
 use LLMesh\Core\Structured\ExtractionGenerator;
 
-
 /**
  * Main entry point for LLMesh operations.
  *

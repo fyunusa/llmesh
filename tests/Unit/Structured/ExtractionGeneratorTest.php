@@ -18,12 +18,14 @@ use LLMesh\Core\Events\ExtractionRetrying;
 use LLMesh\Core\Events\ExtractionFailed;
 use PHPUnit\Framework\TestCase;
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class ExtrModel extends LLMModel
 {
     public function __construct(
         public readonly string $name,
         public readonly int $value,
-    ) {}
+    ) {
+    }
 
     public function validate(): void
     {

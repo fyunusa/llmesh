@@ -10,5 +10,6 @@ final class ExtractionStarted
         public readonly string $modelClass,
         public readonly string $providerName,
         public readonly int $inputLength,   // character count of input text
-    ) {}
+    ) {
+    }
 }

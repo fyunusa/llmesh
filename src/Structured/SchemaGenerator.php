@@ -51,7 +51,7 @@ final class SchemaGenerator
 
             // A field is required if it has no default value and does not allow default in attribute
             $fieldAttr = $this->getFieldAttribute($parameter);
-            
+
             $isOptional = $parameter->isDefaultValueAvailable() || $parameter->isOptional();
             if ($fieldAttr !== null && !$fieldAttr->required) {
                 $isOptional = true;

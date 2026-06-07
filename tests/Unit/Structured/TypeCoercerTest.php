@@ -8,6 +8,7 @@ use LLMesh\Core\Structured\TypeCoercer;
 use LLMesh\Core\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class CoercerTestHelper
 {
     public function types(
@@ -19,7 +20,8 @@ class CoercerTestHelper
         \DateTimeImmutable $dateTime,
         EnumStringStatus $enum,
         ?string $nullableStr,
-    ) {}
+    ) {
+    }
 }
 
 final class TypeCoercerTest extends TestCase

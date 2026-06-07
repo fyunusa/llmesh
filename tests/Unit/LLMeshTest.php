@@ -17,7 +17,6 @@ use LLMesh\Core\Structured\ExtractionOptions;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
-
 final class LLMeshTest extends TestCase
 {
     protected function setUp(): void
@@ -216,10 +215,12 @@ final class LLMeshTest extends TestCase
     }
 }
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class LLMeshTestModel extends LLMModel
 {
     public function __construct(
         public readonly string $result,
-    ) {}
+    ) {
+    }
 }
-
+// phpcs:enable

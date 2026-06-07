@@ -13,5 +13,6 @@ final class ExtractionCompleted
         public readonly LLMModel $result,
         public readonly int $attemptsUsed,
         public readonly int $durationMs,
-    ) {}
+    ) {
+    }
 }

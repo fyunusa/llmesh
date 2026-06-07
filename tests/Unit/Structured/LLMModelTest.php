@@ -8,6 +8,7 @@ use LLMesh\Core\Structured\LLMModel;
 use LLMesh\Core\Structured\Attributes\Field;
 use PHPUnit\Framework\TestCase;
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 enum TestStatus: string
 {
     case Active = 'active';
@@ -18,7 +19,8 @@ class TestNestedModel extends LLMModel
 {
     public function __construct(
         public readonly string $nestedName,
-    ) {}
+    ) {
+    }
 }
 
 class TestMainModel extends LLMModel
@@ -30,7 +32,8 @@ class TestMainModel extends LLMModel
         #[Field(items: TestNestedModel::class)]
         public readonly array $nestedItems,
         public readonly ?TestNestedModel $singleNested = null,
-    ) {}
+    ) {
+    }
 }
 
 final class LLMModelTest extends TestCase

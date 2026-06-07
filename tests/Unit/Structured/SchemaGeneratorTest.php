@@ -11,6 +11,7 @@ use LLMesh\Core\Structured\Attributes\Field;
 use LLMesh\Core\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 enum EnumIntStatus: int
 {
     case Draft = 1;
@@ -29,7 +30,8 @@ class SchemaTestNestedModel extends LLMModel
     public function __construct(
         #[Field(description: 'Nested title')]
         public readonly string $nestedTitle,
-    ) {}
+    ) {
+    }
 }
 
 class SchemaTestMainModel extends LLMModel
@@ -37,24 +39,20 @@ class SchemaTestMainModel extends LLMModel
     public function __construct(
         #[Field(description: 'The title of post', minLength: 5, maxLength: 50, example: 'Sample Post')]
         public readonly string $title,
-
         #[Field(minimum: 1, maximum: 10)]
         public readonly int $rating,
-
         public readonly float $weight,
         public readonly bool $isPublished,
         public readonly \DateTimeImmutable $publishedAt,
         public readonly EnumStringStatus $stringStatus,
         public readonly EnumIntStatus $intStatus,
-
         #[Field(items: SchemaTestNestedModel::class)]
         public readonly array $items,
-
         public readonly SchemaTestNestedModel $nestedObj,
         public readonly ?string $optionalString,
-
         public readonly string $withDefault = 'default value',
-    ) {}
+    ) {
+    }
 }
 
 class NoConstructorModel extends LLMModel

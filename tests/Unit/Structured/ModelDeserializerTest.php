@@ -10,11 +10,13 @@ use LLMesh\Core\Structured\Attributes\Field;
 use LLMesh\Core\Exceptions\ValidationException;
 use PHPUnit\Framework\TestCase;
 
+// phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses
 class DeserNested extends LLMModel
 {
     public function __construct(
         public readonly string $nestedName,
-    ) {}
+    ) {
+    }
 }
 
 class DeserModel extends LLMModel
@@ -28,7 +30,8 @@ class DeserModel extends LLMModel
         #[Field(items: DeserNested::class)]
         public readonly array $hobbies = [],
         public readonly ?DeserNested $favoriteHobby = null,
-    ) {}
+    ) {
+    }
 
     public function validate(): void
     {

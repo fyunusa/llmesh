@@ -87,12 +87,11 @@ final class ExtractionGenerator
                 $this->dispatch(new ExtractionCompleted($options->modelClass, $result, $attempt, $durationMs));
 
                 return $result;
-
             } catch (\JsonException $e) {
                 $lastError = "Invalid JSON returned: {$e->getMessage()}. Raw response: $rawText";
             } catch (ValidationException $e) {
                 $lastError = 'Validation failed: ' . implode(', ', $e->errors());
-            } catch (\InvalidArgumentException|\LogicException|\RuntimeException $e) {
+            } catch (\InvalidArgumentException | \LogicException | \RuntimeException $e) {
                 // Thrown by LLMModel::validate() in subclasses
                 $lastError = 'Model validation failed: ' . $e->getMessage();
             }
