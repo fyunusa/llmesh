@@ -66,8 +66,8 @@ final class CostTrackingStream implements StreamInterface
             $usage = $this->stream->getUsage();
             $this->tracker->record($usage);
             $this->recorded = true;
-        } catch (\LogicException) {
-            // Stream not yet exhausted, cannot record usage yet.
+        } catch (\LogicException|\LLMesh\Core\Exceptions\StreamNotExhaustedException) {
+            // Stream not yet exhausted, or usage not available.
         }
     }
 

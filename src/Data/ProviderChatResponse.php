@@ -29,7 +29,12 @@ final class ProviderChatResponse implements ResponseInterface
         private readonly string $finishReason,
         private readonly array $raw,
     ) {
-        $this->usage = new Usage($inputTokens, $outputTokens);
+        $model = $raw['model'] ?? null;
+        if ($model !== null) {
+            $this->usage = Usage::forModel($model, $inputTokens, $outputTokens);
+        } else {
+            $this->usage = new Usage($inputTokens, $outputTokens);
+        }
     }
 
     public function getText(): string
