@@ -58,10 +58,60 @@ The LLMesh ecosystem consists of separate, modular packages:
 - **[generateText](docs/generators.md)**: Unified API for text generation with full parameter customization.
 - **[streamText](docs/streaming.md)**: Real-time chunked text generation and Server-Sent Events (SSE) responses.
 - **[generateObject](docs/structured-output.md)**: Type-safe JSON output validated against custom schemas.
+- **[Structured Extraction](docs/structured-extraction.md)**: Pydantic-style structured data extraction into fully typed PHP model classes.
 - **[tools](docs/tools.md)**: Native function/tool calling with parameter mapping and validation.
 - **[agents](docs/agents.md)**: Autonomous multi-step orchestration loop with tool execution.
 - **[memory](docs/memory.md)**: Pluggable conversation memory stores (In-Memory, Redis, Database).
 - **[RAG](docs/rag.md)**: End-to-end ingestion pipeline (load, split, embed, store, retrieve).
+
+---
+
+## Structured Extraction
+
+LLMesh supports Pydantic-style structured extraction, allowing you to define a PHP class to serve as the JSON schema, validation rules, and typed data container all in a single step.
+
+```php
+use LLMesh\Core\LLMesh;
+use LLMesh\Core\Structured\LLMModel;
+use LLMesh\Core\Structured\Attributes\Field;
+use LLMesh\Core\Structured\Attributes\Description;
+use LLMesh\OpenAI\OpenAIProvider;
+
+#[Description("An invoice extracted from a text document")]
+class Invoice extends LLMModel
+{
+    public function __construct(
+        #[Field(description: "The reference invoice number", example: "INV-1001")]
+        public readonly string $invoiceNumber,
+
+        #[Field(description: "Total invoice amount in USD", minimum: 0)]
+        public readonly float $totalAmount,
+
+        #[Field(description: "Payment due date")]
+        public readonly \DateTimeImmutable $dueDate,
+    ) {}
+
+    public function validate(): void
+    {
+        if ($this->totalAmount < 0) {
+            throw new \InvalidArgumentException("Invoice amount cannot be negative.");
+        }
+    }
+}
+
+// 1-line extraction directly into typed PHP object
+$invoice = LLMesh::make()->extractFrom(
+    Invoice::class,
+    "Invoice INV-1001 details: Total $150.00, due on 2026-06-30.",
+    new OpenAIProvider($apiKey)
+);
+
+echo $invoice->invoiceNumber;             // string: "INV-1001"
+echo $invoice->totalAmount;               // float: 150.0
+echo $invoice->dueDate->format('Y-m-d');  // DateTimeImmutable: "2026-06-30"
+```
+
+The system automatically handles JSON Schema generation, LLM invocation, self-correction/retries, post-deserialization validation, and type-coercion (converting string inputs to `DateTimeImmutable` instances, `BackedEnum` cases, floats, booleans, and nested model hierarchies).
 
 ---
 

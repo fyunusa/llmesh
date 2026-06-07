@@ -26,6 +26,10 @@ use LLMesh\Core\Generators\StreamResponse;
 use LLMesh\Core\Generators\TextGenerator;
 use LLMesh\Core\Generators\TextResponse;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use LLMesh\Core\Structured\LLMModel;
+use LLMesh\Core\Structured\ExtractionOptions;
+use LLMesh\Core\Structured\ExtractionGenerator;
+
 
 /**
  * Main entry point for LLMesh operations.
@@ -255,15 +259,51 @@ final class LLMesh
         return $generator->embedBatch($provider, $inputs, $options);
     }
 
-    /**
-     * Create a new (empty) RAG Pipeline ready for configuration.
-     *
-     * @return Pipeline
-     */
     private function runPipeline(): Pipeline
     {
         return Pipeline::make();
     }
+
+    /**
+     * Extract structured data from unstructured text into a typed LLMModel instance.
+     *
+     * @template T of LLMModel
+     * @param ProviderInterface $provider
+     * @param ExtractionOptions $options  Must have input and modelClass set
+     * @return T
+     *
+     * @throws \LLMesh\Core\Exceptions\ValidationException on extraction failure
+     */
+    private function runExtract(
+        ProviderInterface $provider,
+        ExtractionOptions $options,
+    ): LLMModel {
+        $generator = new ExtractionGenerator($this->eventDispatcher);
+        return $generator->extract($provider, $options);
+    }
+
+    /**
+     * Shorthand for one-line extraction.
+     *
+     * @template T of LLMModel
+     * @param class-string<T> $modelClass
+     * @param string          $input
+     * @param ProviderInterface $provider
+     * @return T
+     */
+    private function runExtractFrom(
+        string $modelClass,
+        string $input,
+        ProviderInterface $provider,
+    ): LLMModel {
+        return $this->runExtract(
+            provider: $provider,
+            options: ExtractionOptions::make()
+                ->withInput($input)
+                ->into($modelClass),
+        );
+    }
+
 
     /**
      * Route dynamic instance calls.

@@ -12,8 +12,11 @@ use LLMesh\Core\Generators\GenerateTextOptions;
 use LLMesh\Core\Generators\TextResponse;
 use LLMesh\Core\Generators\Usage;
 use LLMesh\Core\LLMesh;
+use LLMesh\Core\Structured\LLMModel;
+use LLMesh\Core\Structured\ExtractionOptions;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
+
 
 final class LLMeshTest extends TestCase
 {
@@ -169,4 +172,54 @@ final class LLMeshTest extends TestCase
 
         $this->assertSame('Hello', $response->getText());
     }
+
+    public function testCanExtract(): void
+    {
+        $mockProvider = $this->createMock(ProviderInterface::class);
+        $mockProvider->expects($this->once())
+            ->method('chat')
+            ->willReturn(new TextResponse(
+                text: json_encode(['result' => 'extracted-facade']),
+                usage: new Usage(10, 20),
+                finishReason: 'stop',
+                raw: []
+            ));
+
+        $options = ExtractionOptions::make()
+            ->withInput('source text')
+            ->into(LLMeshTestModel::class);
+
+        /** @var LLMeshTestModel $model */
+        $model = LLMesh::make()->extract($mockProvider, $options);
+
+        $this->assertInstanceOf(LLMeshTestModel::class, $model);
+        $this->assertSame('extracted-facade', $model->result);
+    }
+
+    public function testCanExtractFromShorthand(): void
+    {
+        $mockProvider = $this->createMock(ProviderInterface::class);
+        $mockProvider->expects($this->once())
+            ->method('chat')
+            ->willReturn(new TextResponse(
+                text: json_encode(['result' => 'shorthand-facade']),
+                usage: new Usage(10, 20),
+                finishReason: 'stop',
+                raw: []
+            ));
+
+        /** @var LLMeshTestModel $model */
+        $model = LLMesh::make()->extractFrom(LLMeshTestModel::class, 'source text', $mockProvider);
+
+        $this->assertInstanceOf(LLMeshTestModel::class, $model);
+        $this->assertSame('shorthand-facade', $model->result);
+    }
 }
+
+class LLMeshTestModel extends LLMModel
+{
+    public function __construct(
+        public readonly string $result,
+    ) {}
+}
+
