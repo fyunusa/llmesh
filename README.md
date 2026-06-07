@@ -2,6 +2,10 @@
 
 [![Latest Stable Version](https://poser.pugx.org/llmesh/core/v)](https://packagist.org/packages/llmesh/core)
 [![PHP Version](https://img.shields.io/badge/php-%5E8.1-blue.svg)](https://packagist.org/packages/llmesh/core)
+[![Laravel Supported](https://img.shields.io/badge/Laravel-supported-brightgreen.svg)](https://packagist.org/packages/llmesh/laravel)
+[![OpenAI Supported](https://img.shields.io/badge/OpenAI-supported-purple.svg)](https://packagist.org/packages/llmesh/openai)
+[![Claude Supported](https://img.shields.io/badge/Claude-supported-red.svg)](https://packagist.org/packages/llmesh/anthropic)
+[![Structured Extraction](https://img.shields.io/badge/Structured%20Extraction-Pydantic--style-blue.svg)](#structured-extraction)
 [![Tests](https://github.com/fyunusa/llmesh/actions/workflows/tests.yml/badge.svg)](https://github.com/fyunusa/llmesh/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
